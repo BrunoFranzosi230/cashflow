@@ -5,3 +5,14 @@
 <h2>Objetivo</h2>
 <p>Facilitar a gestão financeira, oferecendo uma ferramenta confiável e acessível para otimizar o controle do fluxo de caixa, ajudando a Madereira Araquari a manter a saúde financeira em dia.</p>
 
+<h2>Stacks</h2>
+
+* Python
+* Django
+* Django REST Framework (DRF) (API REST)
+* PostgreSQL 
+* Celery + Redis
+* React.js
+* Vite
+* Tailwind CSS 
+
