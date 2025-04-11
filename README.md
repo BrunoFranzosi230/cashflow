@@ -18,7 +18,7 @@
 
 <h2>Requisitos:</h2>
 <p> 
-###Requisitos Funcionais:
+<h3>Requisitos Funcionais:</h3>
 
 RF01- Permitir o registro de receitas e despesas com categorização personalizadas. 
 
@@ -38,7 +38,7 @@ RF08- Enviar notificações sobre contas a pagar e vencimentos programados .
 
 RF09- Criar ferramenta para correção de inconsistências nos dados importados.
 
-###Requisitos Não Funcionais:
+<h3>Requisitos Não Funcionais:</h3>
 
 RFN01- Interface intuitiva e responsiva para facilitar o uso por diferentes perfis de usuários.
 
