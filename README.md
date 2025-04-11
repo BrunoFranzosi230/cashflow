@@ -46,3 +46,7 @@ A adoção da arquitetura monolítica, por sua vez, justifica-se pela coerência
 Além disso, esta arquitetura encontra-se alinhada com os requisitos não funcionais estabelecidos — como desempenho, escalabilidade vertical, disponibilidade, segurança da informação e responsividade — e permite, futuramente, uma migração gradativa para uma arquitetura orientada a serviços ou microsserviços, conforme as demandas de escalabilidade horizontal e integração com outros sistemas evoluam.
 
 Dessa forma, a arquitetura monolítica com estrutura MVC representa uma escolha tecnicamente sólida, condizente com os objetivos do projeto, assegurando um desenvolvimento eficaz, com aderência a padrões reconhecidos de engenharia de software e com possibilidade de evolução arquitetural planejada.</p>
+
+<h2>Diagrama de Contexto</h2>
+![image](https://github.com/user-attachments/assets/15996da6-361d-4724-811d-c9ea61cd2280)
+
