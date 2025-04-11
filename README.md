@@ -89,3 +89,6 @@ Dessa forma, a arquitetura monolítica com estrutura MVC representa uma escolha 
 <h2>Diagrama de Contexto</h2>
 ![image](https://github.com/user-attachments/assets/15996da6-361d-4724-811d-c9ea61cd2280)
 
+<h2>Diagrama de Contêiner</h2>
+![image](https://github.com/user-attachments/assets/201347ca-96aa-434e-9039-5c97f4d8ff45)
+
