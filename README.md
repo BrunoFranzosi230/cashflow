@@ -16,6 +16,29 @@
 * Vite
 * Tailwind CSS 
 
+<h2>Requisitos:</h2>
+<p> * Requisitos Funcionais:
+
+RF01- Permitir o registro de receitas e despesas com categorização personalizadas. 
+RF02- Possibilitar a edição e exclusão de transações. 
+RF03- Apresentar um fluxo de caixa diário, semanal e mensal . 
+RF04- Alertar sobre saldo crítico abaixo de um limite configurável pelo usuário. 
+RF05- Implementar autenticação segura para os usuários. 
+RF06- Criar perfis de usuário com permissões diferenciadas (administrador, financeiro, visualização). 
+RF07- Gerar gráficos de receitas e despesas por categoria . 
+RF08- Enviar notificações sobre contas a pagar e vencimentos programados . 
+RF09- Criar ferramenta para correção de inconsistências nos dados importados.
+
+* Requisitos Não Funcionais:
+
+RFN01- Interface intuitiva e responsiva para facilitar o uso por diferentes perfis de usuários. 
+RFN02- Processamento ágil de grandes volumes de dados sem comprometer a usabilidade. 
+RFN03- A estrutura deve estar preparada para o aumento do volume de dados e usuários sem perda de desempenho. 
+RFN04- Compatível com múltiplos dispositivos (computadores,tablets, smartphones). 
+RFN05- Integração estável e segura entre a API REST do Django 
+RFN06- Código-fonte estruturado para facilitar manutenções futuras atualizações e correções. 
+RFN07- Sistema deve estar disponível 24 horas, salvo períodos programados de manutenção.</p>
+
 <h1>Justificativa da Adoção da Arquitetura Monolítica baseada no Padrão MVC</h1>
 
 <p>A arquitetura adotada para a implementação do sistema CashFlow é do tipo monolítica, estruturada segundo o paradigma Model-View-Controller (MVC). Esta decisão arquitetural fundamenta-se em critérios técnicos, operacionais e estratégicos, considerando o escopo atual do projeto, os requisitos funcionais e não funcionais previamente elencados, bem como os recursos disponíveis para o seu desenvolvimento, manutenção e eventual escalonamento.</p>
