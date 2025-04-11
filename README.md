@@ -18,7 +18,7 @@
 
 <h2>Requisitos:</h2>
 <p> 
- * Requisitos Funcionais:
+* Requisitos Funcionais:
 
 RF01- Permitir o registro de receitas e despesas com categorização personalizadas. 
 
