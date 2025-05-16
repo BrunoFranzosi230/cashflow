@@ -92,3 +92,6 @@ Dessa forma, a arquitetura monolítica com estrutura MVC representa uma escolha 
 <h2>Diagrama de Contêiner</h2>
 ![image](https://github.com/user-attachments/assets/201347ca-96aa-434e-9039-5c97f4d8ff45)
 
+
+<h2>Protótipo de telas</h2>
+https://www.figma.com/design/umXg3TnLY68jhM8TYxUi49/CashFlow?node-id=0-1&t=z7z0ZJJBgczlEwjT-1
