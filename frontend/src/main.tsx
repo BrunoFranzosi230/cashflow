@@ -6,6 +6,9 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 // 2. Importa suas páginas (verifique se os caminhos estão corretos)
 import LoginPage from './Pages/LoginPage.tsx'; 
 import DashboardPage from './Pages/DashboardPage.tsx';
+import ClientesPage from './Pages/Cadastro_cliente.tsx';
+import FornecedoresPage from './Pages/Cadastro_fornecedor.tsx';
+import ProdutosPage from './Pages/Cadastro_produto.tsx';
 
 // 3. Cria o "mapa" de rotas
 const router = createBrowserRouter([
@@ -20,6 +23,18 @@ const router = createBrowserRouter([
   {
     path: "/dashboard", // Quando a URL for /dashboard...
     element: <DashboardPage />, // ...mostre esta página
+  },
+  {
+    path: "/cadastro_cliente",
+    element: <ClientesPage />, // Página de cadastro de cliente
+  },
+   {
+    path: "/cadastro_fornecedor",
+    element: <FornecedoresPage />, // Página de cadastro de fornecedor
+  },
+  {
+    path: "/cadastro_produto",
+    element: <ProdutosPage />, // Página de cadastro de produto
   },
 ]);
 

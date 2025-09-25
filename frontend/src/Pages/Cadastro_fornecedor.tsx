@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// 1. Importe o componente Link
 import { Link } from 'react-router-dom';
 
 // Tipagem para os objetos de estilo
@@ -25,7 +24,7 @@ const ChevronDownIcon = () => (
 
 // --- Estilos do Componente ---
 const styles: { [key: string]: StyleObject } = {
-    dashboardContainer: {
+    pageContainer: {
         display: 'flex',
         width: '100vw',
         height: '100vh',
@@ -67,6 +66,9 @@ const styles: { [key: string]: StyleObject } = {
         margin: '5px 0',
         borderRadius: '8px',
         fontWeight: 500,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     navLink: {
         display: 'block',
@@ -79,18 +81,10 @@ const styles: { [key: string]: StyleObject } = {
         backgroundColor: '#1a237e',
         color: 'white',
     },
-    // 2. Adicionei os estilos do dropdown aqui também
-    cadastrosToggle: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '15px 20px',
-        cursor: 'pointer',
-    },
     subNavList: {
         listStyle: 'none',
         padding: '5px 0 5px 25px',
-        margin: 0,
+        margin: '5px 0 0 0',
     },
     subNavItem: {
         margin: '2px 0',
@@ -104,6 +98,11 @@ const styles: { [key: string]: StyleObject } = {
         textDecoration: 'none',
         color: 'inherit',
         borderRadius: '6px',
+    },
+    subNavItemActive: {
+        fontWeight: 'bold',
+        color: '#0d6efd',
+        backgroundColor: '#e7f5ff'
     },
     logoutButton: {
         display: 'flex',
@@ -136,6 +135,10 @@ const styles: { [key: string]: StyleObject } = {
         fontSize: '0.9rem',
     },
     content: {
+        backgroundColor: '#ffffff',
+        padding: '30px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
         flex: 1,
     },
     contentHeader: {
@@ -143,6 +146,8 @@ const styles: { [key: string]: StyleObject } = {
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: '20px',
+        paddingBottom: '20px',
+        borderBottom: '1px solid #e9ecef',
     },
     contentTitle: {
         fontSize: '2rem',
@@ -152,7 +157,7 @@ const styles: { [key: string]: StyleObject } = {
         display: 'flex',
         gap: '10px',
     },
-    actionButton: {
+    headerActionButton: {
         padding: '10px 20px',
         border: '1px solid #ced4da',
         borderRadius: '8px',
@@ -161,92 +166,61 @@ const styles: { [key: string]: StyleObject } = {
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
+        fontWeight: 500,
     },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '20px',
-    },
-    card: {
-        backgroundColor: '#ffffff',
-        padding: '20px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
-    },
-    cardTitle: {
-        fontSize: '1rem',
-        fontWeight: 600,
-        color: '#6c757d',
-        marginBottom: '15px',
-    },
-    faturamentoValue: {
-        fontSize: '2rem',
-        fontWeight: 'bold',
+    tableActions: {
         marginBottom: '20px',
     },
-    chartDots: {
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'flex-end',
-        height: '60px',
-    },
-    dot: {
-        width: '25px',
-        height: '25px',
-        borderRadius: '50%',
-        backgroundColor: '#4dabf7',
-    },
-    totalValue: {
-        fontSize: '1.8rem',
+    tableActionButton: {
+        padding: '10px 25px',
+        border: 'none',
+        borderRadius: '8px',
+        color: 'white',
         fontWeight: 'bold',
+        cursor: 'pointer',
+        marginRight: '10px',
     },
-    barChart: {
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'flex-end',
-        height: '100px',
+    table: {
+        width: '100%',
+        borderCollapse: 'collapse',
         marginTop: '20px',
     },
-    bar: {
-        width: '40px',
-        backgroundColor: '#1971c2',
-        borderRadius: '4px',
-        position: 'relative',
+    th: {
+        padding: '12px 15px',
+        textAlign: 'left',
+        borderBottom: '2px solid #dee2e6',
+        color: '#495057',
+        fontWeight: 600,
+        fontSize: '0.9rem',
     },
-    barLabel: {
-        position: 'absolute',
-        top: '-20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        fontSize: '0.8rem',
-        background: '#333',
-        color: 'white',
-        padding: '2px 5px',
-        borderRadius: '4px',
+    td: {
+        padding: '12px 15px',
+        borderBottom: '1px solid #e9ecef',
+        height: '30px'
+    },
+    checkbox: {
+        width: '18px',
+        height: '18px',
     }
 };
 
-function DashboardPage() {
-    // 3. Adicionei o estado para controlar o dropdown
-    const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
+function FornecedoresPage() {
+    const [isCadastrosOpen, setIsCadastrosOpen] = useState(true);
+    const tableHeaders = ['Código', 'Razão Social', 'CPF/CNPJ', 'Telefone', 'Inscrição Estadual'];
+    const emptyRows = Array.from({ length: 10 });
 
     return (
-        <div style={styles.dashboardContainer}>
+        <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
-                <div style={styles.sidebarHeader}>
-                    <h1 style={styles.logo}>CashFlow</h1>
-                </div>
+                <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
                 <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> Usuário!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
-                        {/* 4. Atualizei a estrutura do menu */}
-                        <li style={{...styles.navItem, ...styles.navItemActive}}>
-                            <Link to="/dashboard" style={styles.navLink}>Dashboard</Link>
-                        </li>
+                        <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Dashboard</Link></li>
                         
-                        <li style={styles.navItem}>
+                        <li>
                             <div 
-                                style={styles.cadastrosToggle}
+                                style={{...styles.navItem, ...styles.navItemActive, padding: '15px 20px', cursor: 'pointer'}}
                                 onClick={() => setIsCadastrosOpen(!isCadastrosOpen)}
                             >
                                 <span>Cadastros</span>
@@ -257,7 +231,7 @@ function DashboardPage() {
                                     <li style={styles.subNavItem}>
                                         <Link to="/cadastro_cliente" style={styles.subNavLink}>Clientes</Link>
                                     </li>
-                                    <li style={styles.subNavItem}>
+                                    <li style={{...styles.subNavItem, ...styles.subNavItemActive}}>
                                         <Link to="/cadastro_fornecedor" style={styles.subNavLink}>Fornecedores</Link>
                                     </li>
                                     <li style={styles.subNavItem}>
@@ -291,55 +265,40 @@ function DashboardPage() {
 
                 <div style={styles.content}>
                     <div style={styles.contentHeader}>
-                        <h1 style={styles.contentTitle}>Controle Financeiro</h1>
+                        <h1 style={styles.contentTitle}>Fornecedores</h1>
                         <div style={styles.actions}>
-                            <button style={styles.actionButton}>Exportar</button>
-                            <button style={styles.actionButton}>Filtro <FilterIcon /></button>
+                            <button style={styles.headerActionButton}>Exportar</button>
+                            <button style={styles.headerActionButton}>Filtro <FilterIcon /></button>
                         </div>
                     </div>
-
-                    <div style={styles.grid}>
-                         <div style={{...styles.card, gridColumn: 'span 2'}}>
-                            <h3 style={styles.cardTitle}>Faturamento</h3>
-                            <p style={styles.faturamentoValue}>R$ 100,75K</p>
-                            <div style={styles.chartDots}>
-                                <div style={{...styles.dot, height: '15px', width: '15px', backgroundColor: '#adb5bd'}}></div>
-                                <div style={{...styles.dot, height: '25px'}}></div>
-                                <div style={{...styles.dot, height: '35px', backgroundColor: '#1971c2'}}></div>
-                                <div style={{...styles.dot, height: '20px'}}></div>
-                                <div style={{...styles.dot, height: '30px'}}></div>
-                            </div>
-                        </div>
-
-                        <div style={styles.card}>
-                           <h3 style={styles.cardTitle}>Total Pagos</h3>
-                           <p style={styles.totalValue}>R$ 74,65K</p>
-                        </div>
-
-                        <div style={styles.card}>
-                           <h3 style={styles.cardTitle}>Total Recebidos</h3>
-                           <p style={styles.totalValue}>R$ 608,87K</p>
-                        </div>
-
-                         <div style={{...styles.card, gridColumn: 'span 2'}}>
-                            <h3 style={styles.cardTitle}>Totais</h3>
-                             <p style={styles.faturamentoValue}>R$ 683,52K</p>
-                             <div style={styles.barChart}>
-                                <div style={{...styles.bar, height: '60%'}}><span style={styles.barLabel}>294,12K</span></div>
-                                <div style={{...styles.bar, height: '80%'}}><span style={styles.barLabel}>400,87K</span></div>
-                                <div style={{...styles.bar, height: '30%', backgroundColor: '#adb5bd'}}><span style={styles.barLabel}>78,94K</span></div>
-                                <div style={{...styles.bar, height: '100%'}}><span style={styles.barLabel}>683,52K</span></div>
-                             </div>
-                        </div>
-
-                        <div style={styles.card}>
-                           <h3 style={styles.cardTitle}>Demonstração Financeira</h3>
-                        </div>
+                    
+                    <div style={styles.tableActions}>
+                        <button style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
+                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Alterar</button>
+                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Visualizar</button>
+                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Excluir</button>
                     </div>
+
+                    <table style={styles.table}>
+                        <thead>
+                            <tr>
+                                <th style={{...styles.th, width: '5%'}}><input type="checkbox" style={styles.checkbox} /></th>
+                                {tableHeaders.map(header => <th key={header} style={styles.th}>{header}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {emptyRows.map((_, index) => (
+                                <tr key={index}>
+                                    <td style={styles.td}><input type="checkbox" style={styles.checkbox} /></td>
+                                    {tableHeaders.map(header => <td key={header} style={styles.td}></td>)}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </main>
         </div>
     );
 }
 
-export default DashboardPage;
+export default FornecedoresPage;

@@ -64,6 +64,7 @@ const styles: { [key: string]: StyleObject } = {
   },
   formPanelH2: {
     color: '#0d47a1',
+    fontFamily: 'Roboto, sans-serif',
     fontSize: '2.5rem',
     marginBottom: '40px',
     textAlign: 'center',
