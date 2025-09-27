@@ -3,14 +3,18 @@ import React, { useState } from 'react';
 // Tipagem para os objetos de estilo (boa prática em TypeScript)
 type StyleObject = React.CSSProperties;
 
-// ESTILOS GLOBAIS APENAS PARA O PLACEHOLDER
-// Esta é a melhor forma de estilizar pseudo-elementos como ::placeholder
-// quando se usa CSS-in-JS sem uma biblioteca externa.
+// ESTILOS GLOBAIS
 const globalStyles = `
   #email::placeholder,
   #password::placeholder {
     color: #b0bec5 !important; /* Cor cinza claro para o placeholder */
     opacity: 1; /* Garante visibilidade em todos os navegadores */
+  }
+
+  /* Esconde o ícone de revelação de senha padrão do navegador */
+  #password::-ms-reveal,
+  #password::-webkit-password-reveal-button {
+    display: none;
   }
 `;
 
@@ -46,6 +50,7 @@ const styles: { [key: string]: StyleObject } = {
     borderBottomLeftRadius: '10px',
   },
   infoPanelH1: {
+    fontFamily: 'Roboto, sans-serif', 
     fontSize: '4rem',
     fontWeight: 'bold',
     lineHeight: 1.2,
@@ -53,6 +58,7 @@ const styles: { [key: string]: StyleObject } = {
   },
   formPanel: {
     backgroundColor: 'white',
+    fontFamily: 'Roboto, sans-serif', 
     padding: '50px 80px',
     flex: 1,
     display: 'flex',
@@ -79,6 +85,7 @@ const styles: { [key: string]: StyleObject } = {
   },
   label: {
     display: 'block',
+    fontFamily: 'Roboto, sans-serif', 
     marginBottom: '8px',
     color: '#666',
     fontSize: '0.9rem',
@@ -112,6 +119,7 @@ const styles: { [key: string]: StyleObject } = {
   },
   forgotPassword: {
     display: 'block',
+    fontFamily: 'Roboto, sans-serif', 
     textAlign: 'right',
     marginTop: '-10px',
     marginBottom: '25px',
@@ -121,6 +129,7 @@ const styles: { [key: string]: StyleObject } = {
   },
   submitButton: {
     width: '100%',
+    fontFamily: 'Roboto, sans-serif', 
     padding: '15px',
     border: 'none',
     borderRadius: '8px',
@@ -140,6 +149,18 @@ function LoginPage() {
     setShowPassword(!showPassword);
   };
 
+  // --- CORREÇÃO APLICADA AQUI ---
+  // Função para lidar com o login e redirecionar
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault(); // Impede que a página recarregue ao enviar o formulário
+    
+    // Lógica de validação (opcional) viria aqui
+    // Ex: if (email && password) { ... }
+
+    // Redireciona o usuário para a rota /dashboard
+    window.location.href = '/dashboard';
+  };
+
   // Ícones SVG para mostrar e ocultar senha
   const EyeOpenIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -156,7 +177,6 @@ function LoginPage() {
   );
 
   return (
-    // Usamos um React.Fragment (<>) para agrupar a tag <style> e o div principal
     <>
       <style>{globalStyles}</style>
       <div style={styles.container}>
@@ -169,7 +189,8 @@ function LoginPage() {
           {/* Painel Direito (Formulário) */}
           <div style={styles.formPanel}>
             <h2 style={styles.formPanelH2}>Login</h2>
-            <form onSubmit={(e) => e.preventDefault()}>
+            {/* O evento onSubmit agora chama a função handleLogin */}
+            <form onSubmit={handleLogin}>
               <div style={styles.formGroup}>
                 <label htmlFor="email" style={styles.label}>E-mail</label>
                 <input 
@@ -177,6 +198,7 @@ function LoginPage() {
                   id="email" 
                   style={styles.input}
                   placeholder="Digite seu e-mail" 
+                  required // Boa prática adicionar validação básica
                 />
               </div>
               <div style={styles.formGroup}>
@@ -187,13 +209,13 @@ function LoginPage() {
                     id="password" 
                     style={{...styles.input, ...styles.passwordInput}}
                     placeholder="Digite sua senha" 
+                    required // Boa prática adicionar validação básica
                   />
                   <button 
                     type="button" 
                     onClick={togglePasswordVisibility} 
                     style={styles.toggleButton}
                   >
-                    {/* O ícone muda dependendo do estado */}
                     {showPassword ? EyeClosedIcon : EyeOpenIcon}
                   </button>
                 </div>
@@ -209,3 +231,4 @@ function LoginPage() {
 }
 
 export default LoginPage;
+
