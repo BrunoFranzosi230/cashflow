@@ -24,184 +24,35 @@ const ChevronDownIcon = () => (
 
 // --- Estilos do Componente ---
 const styles: { [key: string]: StyleObject } = {
-    pageContainer: {
-        display: 'flex',
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: '#f0f2f5',
-        fontFamily: `'Segoe UI', sans-serif`,
-        color: '#333',
-    },
-    sidebar: {
-        width: '280px',
-        backgroundColor: '#ffffff',
-        padding: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        borderRight: '1px solid #e0e0e0',
-    },
-    sidebarHeader: {
-        marginBottom: '40px',
-    },
-    logo: {
-        fontSize: '1.8rem',
-        fontWeight: 'bold',
-        color: '#0d6efd',
-    },
-    welcomeMessage: {
-        marginTop: '40px',
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-    },
-    nav: {
-        flex: 1,
-        marginTop: '20px',
-    },
-    navList: {
-        listStyle: 'none',
-        padding: 0,
-        margin: 0,
-    },
-    navItem: {
-        margin: '5px 0',
-        borderRadius: '8px',
-        fontWeight: 500,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    navLink: {
-        display: 'block',
-        padding: '15px 20px',
-        textDecoration: 'none',
-        color: 'inherit',
-        borderRadius: '8px',
-    },
-    navItemActive: {
-        backgroundColor: '#1a237e',
-        color: 'white',
-    },
-    subNavList: {
-        listStyle: 'none',
-        padding: '5px 0 5px 25px',
-        margin: '5px 0 0 0',
-    },
-    subNavItem: {
-        margin: '2px 0',
-        borderRadius: '6px',
-        fontWeight: 400,
-        fontSize: '0.95rem',
-    },
-    subNavLink: {
-        display: 'block',
-        padding: '10px 15px',
-        textDecoration: 'none',
-        color: 'inherit',
-        borderRadius: '6px',
-    },
-    subNavItemActive: {
-        fontWeight: 'bold',
-        color: '#0d6efd',
-        backgroundColor: '#e7f5ff'
-    },
-    logoutButton: {
-        display: 'flex',
-        alignItems: 'center',
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        padding: '10px',
-    },
-    mainContent: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '20px 40px',
-        overflowY: 'auto',
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        marginBottom: '30px',
-    },
-    headerItem: {
-        display: 'flex',
-        alignItems: 'center',
-        marginLeft: '20px',
-        padding: '8px 12px',
-        borderRadius: '8px',
-        backgroundColor: '#e9ecef',
-        fontSize: '0.9rem',
-    },
-    content: {
-        backgroundColor: '#ffffff',
-        padding: '30px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
-        flex: 1,
-    },
-    contentHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px',
-        paddingBottom: '20px',
-        borderBottom: '1px solid #e9ecef',
-    },
-    contentTitle: {
-        fontSize: '2rem',
-        fontWeight: 'bold',
-    },
-    actions: {
-        display: 'flex',
-        gap: '10px',
-    },
-    headerActionButton: {
-        padding: '10px 20px',
-        border: '1px solid #ced4da',
-        borderRadius: '8px',
-        background: '#fff',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontWeight: 500,
-    },
-    tableActions: {
-        marginBottom: '20px',
-    },
-    tableActionButton: {
-        padding: '10px 25px',
-        border: 'none',
-        borderRadius: '8px',
-        color: 'white',
-        fontWeight: 'bold',
-        cursor: 'pointer',
-        marginRight: '10px',
-    },
-    table: {
-        width: '100%',
-        borderCollapse: 'collapse',
-        marginTop: '20px',
-    },
-    th: {
-        padding: '12px 15px',
-        textAlign: 'left',
-        borderBottom: '2px solid #dee2e6',
-        color: '#495057',
-        fontWeight: 600,
-        fontSize: '0.9rem',
-    },
-    td: {
-        padding: '12px 15px',
-        borderBottom: '1px solid #e9ecef',
-        height: '30px'
-    },
-    checkbox: {
-        width: '18px',
-        height: '18px',
-    }
+    pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
+    sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
+    sidebarHeader: { marginBottom: '40px' },
+    logo: { fontSize: '1.8rem', fontWeight: 'bold', color: '#0d6efd' },
+    welcomeMessage: { marginTop: '40px', fontSize: '1.5rem', fontWeight: 'bold' },
+    nav: { flex: 1, marginTop: '20px' },
+    navList: { listStyle: 'none', padding: 0, margin: 0 },
+    navItem: { margin: '5px 0', borderRadius: '8px', fontWeight: 500, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    navLink: { display: 'block', padding: '15px 20px', textDecoration: 'none', color: 'inherit', borderRadius: '8px' },
+    navItemActive: { backgroundColor: '#1a237e', color: 'white' },
+    subNavList: { listStyle: 'none', padding: '5px 0 5px 25px', margin: '5px 0 0 0' },
+    subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem' },
+    subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px' },
+    subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
+    logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px' },
+    mainContent: { flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 40px', overflowY: 'auto' },
+    header: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px' },
+    headerItem: { display: 'flex', alignItems: 'center', marginLeft: '20px', padding: '8px 12px', borderRadius: '8px', backgroundColor: '#e9ecef', fontSize: '0.9rem' },
+    content: { backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', flex: 1 },
+    contentHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #e9ecef' },
+    contentTitle: { fontSize: '2rem', fontWeight: 'bold' },
+    actions: { display: 'flex', gap: '10px' },
+    headerActionButton: { padding: '10px 20px', border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 },
+    tableActions: { marginBottom: '20px' },
+    tableActionButton: { padding: '10px 25px', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', marginRight: '10px' },
+    table: { width: '100%', borderCollapse: 'collapse', marginTop: '20px' },
+    th: { padding: '12px 15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', color: '#495057', fontWeight: 600, fontSize: '0.9rem' },
+    td: { padding: '12px 15px', borderBottom: '1px solid #e9ecef', height: '30px' },
+    checkbox: { width: '18px', height: '18px' }
 };
 
 function ProdutosPage() {
@@ -241,15 +92,16 @@ function ProdutosPage() {
                             )}
                         </li>
                         
-                        <li style={styles.navItem}><Link to="#" style={styles.navLink}>Contas a pagar</Link></li>
-                        <li style={styles.navItem}><Link to="#" style={styles.navLink}>Contas a receber</Link></li>
-                        <li style={styles.navItem}><Link to="#" style={styles.navLink}>Configurações</Link></li>
+                        {/* BOTÃO CORRIGIDO/ADICIONADO AQUI */}
+                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        
+                        <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
+                        <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
                 <button style={styles.logoutButton}><ArrowLeftIcon /></button>
             </aside>
 
-            {/* Conteúdo Principal */}
             <main style={styles.mainContent}>
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>

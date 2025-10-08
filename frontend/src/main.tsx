@@ -9,6 +9,7 @@ import DashboardPage from './Pages/DashboardPage.tsx';
 import ClientesPage from './Pages/Cadastro_cliente.tsx';
 import FornecedoresPage from './Pages/Cadastro_fornecedor.tsx';
 import ProdutosPage from './Pages/Cadastro_produto.tsx';
+import ContasAPagarPage from './Pages/Contas_pagar.tsx';
 
 // 3. Cria o "mapa" de rotas
 const router = createBrowserRouter([
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: "/cadastro_produto",
     element: <ProdutosPage />, // Página de cadastro de produto
+  },
+  {
+    path: "/contas_a_pagar",
+    element: <ContasAPagarPage />, // Página de contas a pagar
   },
 ]);
 
