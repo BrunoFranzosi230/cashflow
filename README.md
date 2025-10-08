@@ -5,6 +5,7 @@
 <h2>Objetivo</h2>
 <p>Facilitar a gestão financeira, oferecendo uma ferramenta confiável e acessível para otimizar o controle do fluxo de caixa, ajudando a Madereira Araquari a manter a saúde financeira em dia.</p>
 
+
 <h2>Stacks</h2>
 
 * Python
@@ -98,3 +99,4 @@ https://www.figma.com/design/umXg3TnLY68jhM8TYxUi49/CashFlow?node-id=0-1&t=z7z0Z
 
 <h2>Relatório do Projeto de Aprendizagem Extensionista</h2>
 https://drive.google.com/drive/folders/1k6xyRpnSoZNVyZwLWzC67o5SZ4gpAPa5?usp=sharing
+
