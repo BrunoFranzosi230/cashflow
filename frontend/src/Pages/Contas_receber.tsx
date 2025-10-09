@@ -1,36 +1,36 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-// --- TIPAGEM ---
+// --- TYPE DEFINITIONS ---
 type StyleObject = React.CSSProperties;
 
 type Conta = {
   id: number;
-  status: 'Aberto' | 'Pago' | 'Vencido';
+  status: 'Aberto' | 'Recebido' | 'Vencido';
   prefixo: string;
   numeroTitulo: string;
   tipo: string;
-  fornecedor: string;
+  cliente: string;
   dataEmissao: string;
 };
 
-// --- ÍCONES SVG ---
+// --- SVG ICONS ---
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>;
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
 const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>;
 const ArrowLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
 const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
 
-// --- DADOS MOCK ---
+// --- MOCK DATA ---
 const mockData: Conta[] = [
-    { id: 1, status: 'Aberto', prefixo: 'NF', numeroTitulo: '12050', tipo: 'NF-e', fornecedor: 'Global Tech Solutions', dataEmissao: '2025-10-01' },
-    { id: 2, status: 'Pago', prefixo: 'FAT', numeroTitulo: '8809', tipo: 'Serviço', fornecedor: 'Creative Minds Design', dataEmissao: '2025-09-25' },
-    { id: 3, status: 'Vencido', prefixo: 'BOL', numeroTitulo: '34512', tipo: 'Boleto', fornecedor: 'Infraestrutura de Rede Segura', dataEmissao: '2025-09-10' },
-    { id: 4, status: 'Aberto', prefixo: 'NF', numeroTitulo: '12077', tipo: 'NF-e', fornecedor: 'ACME Corporation', dataEmissao: '2025-10-03' },
-    { id: 5, status: 'Pago', prefixo: 'NF', numeroTitulo: '11998', tipo: 'NF-e', fornecedor: 'Global Tech Solutions', dataEmissao: '2025-09-18' },
+    { id: 1, status: 'Aberto', prefixo: 'FAT', numeroTitulo: '7501', tipo: 'Serviço', cliente: 'Alpha Co.', dataEmissao: '2025-10-15' },
+    { id: 2, status: 'Recebido', prefixo: 'NF', numeroTitulo: '3345', tipo: 'NF-e', cliente: 'Omega Inc.', dataEmissao: '2025-09-30' },
+    { id: 3, status: 'Vencido', prefixo: 'BOL', numeroTitulo: '9823', tipo: 'Boleto', cliente: 'Beta Group', dataEmissao: '2025-09-05' },
+    { id: 4, status: 'Aberto', prefixo: 'FAT', numeroTitulo: '7502', tipo: 'Serviço', cliente: 'Gamma LLC', dataEmissao: '2025-10-20' },
+    { id: 5, status: 'Recebido', prefixo: 'NF', numeroTitulo: '3350', tipo: 'NF-e', cliente: 'Alpha Co.', dataEmissao: '2025-10-01' },
 ];
 
-// --- ESTILOS (BASEADO EM CLIENTES) ---
+// --- STYLES (CSS-in-JS) ---
 const styles: { [key: string]: StyleObject } = {
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
@@ -66,15 +66,15 @@ const styles: { [key: string]: StyleObject } = {
     logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px' },
 };
 
-function ContasAPagarPage() {
+function ContasAReceberPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
     const [contas, _setContas] = useState<Conta[]>(mockData);
     const [selectedRow, setSelectedRow] = useState<number | null>(null);
 
     const getStatusStyle = (status: Conta['status']): React.CSSProperties => {
-        if (status === 'Aberto') return { backgroundColor: '#0d6efd' }; // Azul
-        if (status === 'Pago') return { backgroundColor: '#198754' }; // Verde
-        if (status === 'Vencido') return { backgroundColor: '#dc3545' }; // Vermelho
+        if (status === 'Aberto') return { backgroundColor: '#0d6efd' }; // Blue
+        if (status === 'Recebido') return { backgroundColor: '#198754' }; // Green
+        if (status === 'Vencido') return { backgroundColor: '#dc3545' }; // Red
         return {};
     };
 
@@ -99,8 +99,8 @@ function ContasAPagarPage() {
                                 </ul>
                             )}
                         </li>
-                        <li style={{...styles.navItem, ...styles.navItemActive}}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
-                        <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
+                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        <li style={{...styles.navItem, ...styles.navItemActive}}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
@@ -122,7 +122,7 @@ function ContasAPagarPage() {
 
                 <div style={styles.content}>
                     <div style={styles.contentHeader}>
-                        <h1 style={styles.contentTitle}>Contas a Pagar</h1>
+                        <h1 style={styles.contentTitle}>Contas a Receber</h1>
                         <div style={styles.actions}>
                             <button style={styles.headerActionButton}>Exportar</button>
                             <button style={styles.headerActionButton}>Filtro <FilterIcon /></button>
@@ -141,7 +141,7 @@ function ContasAPagarPage() {
                             <tr>
                                 <th style={{...styles.th, width: '5%'}}></th>
                                 <th style={styles.th}>Status</th>
-                                <th style={styles.th}>Fornecedor</th>
+                                <th style={styles.th}>Cliente</th>
                                 <th style={styles.th}>Nº Título</th>
                                 <th style={styles.th}>Emissão</th>
                             </tr>
@@ -153,7 +153,7 @@ function ContasAPagarPage() {
                                 <tr key={conta.id} onClick={() => setSelectedRow(isSelected ? null : conta.id)} style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}>
                                     <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
                                     <td style={styles.td}><span style={{...styles.statusBadge, ...getStatusStyle(conta.status)}}>{conta.status}</span></td>
-                                    <td style={styles.td}>{conta.fornecedor}</td>
+                                    <td style={styles.td}>{conta.cliente}</td>
                                     <td style={styles.td}>{conta.numeroTitulo}</td>
                                     <td style={styles.td}>{new Date(conta.dataEmissao).toLocaleDateString('pt-BR')}</td>
                                 </tr>
@@ -166,5 +166,4 @@ function ContasAPagarPage() {
     );
 }
 
-export default ContasAPagarPage;
-
+export default ContasAReceberPage;

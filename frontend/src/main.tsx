@@ -10,6 +10,8 @@ import ClientesPage from './Pages/Cadastro_cliente.tsx';
 import FornecedoresPage from './Pages/Cadastro_fornecedor.tsx';
 import ProdutosPage from './Pages/Cadastro_produto.tsx';
 import ContasAPagarPage from './Pages/Contas_pagar.tsx';
+import ForgotPasswordPage from './Pages/Forgot_password.tsx';
+import ContasAReceberPage from './Pages/Contas_receber.tsx';
 
 // 3. Cria o "mapa" de rotas
 const router = createBrowserRouter([
@@ -20,6 +22,10 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/Forgot_pass",
+    element: <ForgotPasswordPage />,
   },
   {
     path: "/dashboard", // Quando a URL for /dashboard...
@@ -40,6 +46,10 @@ const router = createBrowserRouter([
   {
     path: "/contas_a_pagar",
     element: <ContasAPagarPage />, // Página de contas a pagar
+  },
+  {
+    path: "/contas_a_receber",
+    element: <ContasAReceberPage />, // Página de contas a receber
   },
 ]);
 

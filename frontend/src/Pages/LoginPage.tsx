@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+// --- CHANGE 1: Import Link from react-router-dom ---
+import { Link } from 'react-router-dom';
 
 // Tipagem para os objetos de estilo (boa prática em TypeScript)
 type StyleObject = React.CSSProperties;
@@ -7,11 +9,9 @@ type StyleObject = React.CSSProperties;
 const globalStyles = `
   #email::placeholder,
   #password::placeholder {
-    color: #b0bec5 !important; /* Cor cinza claro para o placeholder */
-    opacity: 1; /* Garante visibilidade em todos os navegadores */
+    color: #b0bec5 !important;
+    opacity: 1;
   }
-
-  /* Esconde o ícone de revelação de senha padrão do navegador */
   #password::-ms-reveal,
   #password::-webkit-password-reveal-button {
     display: none;
@@ -101,7 +101,7 @@ const styles: { [key: string]: StyleObject } = {
     boxSizing: 'border-box',
   },
   passwordInput: {
-    paddingRight: '45px', // Adiciona espaço à direita para o ícone
+    paddingRight: '45px',
   },
   toggleButton: {
     position: 'absolute',
@@ -111,7 +111,7 @@ const styles: { [key: string]: StyleObject } = {
     background: 'transparent',
     border: 'none',
     cursor: 'pointer',
-    color: '#000000', // Cor do ícone
+    color: '#000000',
     padding: '5px',
     display: 'flex',
     alignItems: 'center',
@@ -149,19 +149,11 @@ function LoginPage() {
     setShowPassword(!showPassword);
   };
 
-  // --- CORREÇÃO APLICADA AQUI ---
-  // Função para lidar com o login e redirecionar
   const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault(); // Impede que a página recarregue ao enviar o formulário
-    
-    // Lógica de validação (opcional) viria aqui
-    // Ex: if (email && password) { ... }
-
-    // Redireciona o usuário para a rota /dashboard
+    e.preventDefault();
     window.location.href = '/dashboard';
   };
 
-  // Ícones SVG para mostrar e ocultar senha
   const EyeOpenIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -181,15 +173,11 @@ function LoginPage() {
       <style>{globalStyles}</style>
       <div style={styles.container}>
         <div style={styles.loginCard}>
-          {/* Painel Esquerdo (Azul) */}
           <div style={styles.infoPanel}>
             <h1 style={styles.infoPanelH1}>Olá, <br /> Bem-vindo!</h1>
           </div>
-
-          {/* Painel Direito (Formulário) */}
           <div style={styles.formPanel}>
             <h2 style={styles.formPanelH2}>Login</h2>
-            {/* O evento onSubmit agora chama a função handleLogin */}
             <form onSubmit={handleLogin}>
               <div style={styles.formGroup}>
                 <label htmlFor="email" style={styles.label}>E-mail</label>
@@ -198,7 +186,7 @@ function LoginPage() {
                   id="email" 
                   style={styles.input}
                   placeholder="Digite seu e-mail" 
-                  required // Boa prática adicionar validação básica
+                  required 
                 />
               </div>
               <div style={styles.formGroup}>
@@ -209,7 +197,7 @@ function LoginPage() {
                     id="password" 
                     style={{...styles.input, ...styles.passwordInput}}
                     placeholder="Digite sua senha" 
-                    required // Boa prática adicionar validação básica
+                    required 
                   />
                   <button 
                     type="button" 
@@ -220,7 +208,12 @@ function LoginPage() {
                   </button>
                 </div>
               </div>
-              <a href="#" style={styles.forgotPassword}>Esqueceu a senha?</a>
+              
+              {/* --- CHANGE 2: Use Link for navigation --- */}
+              <Link to="/forgot_pass" style={styles.forgotPassword}>
+                Esqueceu a senha?
+              </Link>
+              
               <button type="submit" style={styles.submitButton}>Entrar</button>
             </form>
           </div>
