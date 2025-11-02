@@ -15,6 +15,8 @@ import ContasAReceberPage from './Pages/Contas_receber.tsx';
 import ClientesIncluirPage from './Pages/Cliente_incluir.tsx';
 import FornecedoresIncluirPage from './Pages/Fornecedores_Incluir.tsx';
 import ProdutosIncluirPage from './Pages/Produto_incluir.tsx';
+import ContasPagarIncluirPage from './Pages/ContasPagarIncluir.tsx';
+import ContasReceberIncluirPage from './Pages/ContasReceberIncluir.tsx';
 
 // 3. Cria o "mapa" de rotas
 const router = createBrowserRouter([
@@ -76,8 +78,24 @@ const router = createBrowserRouter([
     element: <ContasAPagarPage />, // Página de contas a pagar
   },
   {
+    path: "/contas_a_pagar/novo",
+    element: <ContasPagarIncluirPage />,
+  },
+  {
+    path: "/contas_a_pagar/editar/:id",
+    element: <ContasPagarIncluirPage />,
+  },
+  {
     path: "/contas_a_receber",
     element: <ContasAReceberPage />, // Página de contas a receber
+  },
+  {
+    path: "/contas_a_receber/novo",
+    element: <ContasReceberIncluirPage />,
+  },
+  {
+    path: "/contas_a_receber/editar/:id",
+    element: <ContasReceberIncluirPage />,
   },
 ]);
 

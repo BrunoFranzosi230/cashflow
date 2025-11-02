@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 // --- TIPAGEM ---
 type StyleObject = React.CSSProperties;
 
 type Conta = {
-  id: number;
+  id: string; // ID do localStorage
   status: 'Aberto' | 'Pago' | 'Vencido';
   prefixo: string;
   numeroTitulo: string;
   tipo: string;
   fornecedor: string;
   dataEmissao: string;
+  valorTitulo: string; 
+  vencimento: string; 
 };
 
 // --- ÍCONES SVG ---
@@ -21,16 +23,7 @@ const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" heig
 const ArrowLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
 const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
 
-// --- DADOS MOCK ---
-const mockData: Conta[] = [
-    { id: 1, status: 'Aberto', prefixo: 'NF', numeroTitulo: '12050', tipo: 'NF-e', fornecedor: 'Global Tech Solutions', dataEmissao: '2025-10-01' },
-    { id: 2, status: 'Pago', prefixo: 'FAT', numeroTitulo: '8809', tipo: 'Serviço', fornecedor: 'Creative Minds Design', dataEmissao: '2025-09-25' },
-    { id: 3, status: 'Vencido', prefixo: 'BOL', numeroTitulo: '34512', tipo: 'Boleto', fornecedor: 'Infraestrutura de Rede Segura', dataEmissao: '2025-09-10' },
-    { id: 4, status: 'Aberto', prefixo: 'NF', numeroTitulo: '12077', tipo: 'NF-e', fornecedor: 'ACME Corporation', dataEmissao: '2025-10-03' },
-    { id: 5, status: 'Pago', prefixo: 'NF', numeroTitulo: '11998', tipo: 'NF-e', fornecedor: 'Global Tech Solutions', dataEmissao: '2025-09-18' },
-];
-
-// --- ESTILOS (BASEADO EM CLIENTES) ---
+// --- ESTILOS ---
 const styles: { [key: string]: StyleObject } = {
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
@@ -62,20 +55,107 @@ const styles: { [key: string]: StyleObject } = {
     trHover: { cursor: 'pointer' },
     trSelected: { backgroundColor: '#e7f5ff' },
     checkbox: { width: '18px', height: '18px' },
-    statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white' },
+    statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white', cursor: 'pointer' }, // Cursor pointer
     logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px' },
+    noDataText: { textAlign: 'center', padding: '20px', color: '#6c757d', fontStyle: 'italic' },
+
+    // 1. NOVOS ESTILOS PARA O DROPDOWN DE STATUS
+    statusContainer: {
+        position: 'relative', // Essencial para o dropdown
+        display: 'inline-block',
+    },
+    statusDropdown: {
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        backgroundColor: 'white',
+        border: '1px solid #e0e0e0',
+        borderRadius: '6px',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        zIndex: 10,
+        marginTop: '4px',
+        padding: '5px 0',
+        minWidth: '100px',
+    },
+    statusDropdownItem: {
+        padding: '8px 15px',
+        cursor: 'pointer',
+        fontSize: '0.9rem',
+        color: '#333',
+    },
 };
 
 function ContasAPagarPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
-    const [contas, _setContas] = useState<Conta[]>(mockData);
-    const [selectedRow, setSelectedRow] = useState<number | null>(null);
+    const [contas, setContas] = useState<Conta[]>([]); 
+    const [selectedRow, setSelectedRow] = useState<string | null>(null); 
+    const navigate = useNavigate();
+    const storageKey = 'contas_a_pagar'; 
+    
+    // 2. NOVO ESTADO PARA CONTROLAR O DROPDOWN
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const dadosSalvos = localStorage.getItem(storageKey);
+        if (dadosSalvos) {
+            setContas(JSON.parse(dadosSalvos));
+        }
+    }, []);
 
     const getStatusStyle = (status: Conta['status']): React.CSSProperties => {
-        if (status === 'Aberto') return { backgroundColor: '#0d6efd' }; // Azul
-        if (status === 'Pago') return { backgroundColor: '#198754' }; // Verde
-        if (status === 'Vencido') return { backgroundColor: '#dc3545' }; // Vermelho
-        return {};
+        if (status === 'Aberto') return { ...styles.statusBadge, backgroundColor: '#0d6efd' }; // Azul
+        if (status === 'Pago') return { ...styles.statusBadge, backgroundColor: '#198754' }; // Verde
+        if (status === 'Vencido') return { ...styles.statusBadge, backgroundColor: '#dc3545' }; // Vermelho
+        return styles.statusBadge;
+    };
+
+    // 3. FUNÇÃO PARA ABRIR/FECHAR O DROPDOWN
+    const handleDropdownToggle = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // Impede que o clique selecione a linha
+        setOpenDropdownId(prevId => (prevId === id ? null : id));
+    };
+
+    // 4. FUNÇÃO PARA ATUALIZAR O STATUS (vinda do dropdown)
+    const handleStatusUpdate = (e: React.MouseEvent, clickedId: string, newStatus: Conta['status']) => {
+        e.stopPropagation(); // Impede outros cliques
+
+        const contasSalvas = localStorage.getItem(storageKey) || '[]';
+        const contasAtual: Conta[] = JSON.parse(contasSalvas);
+
+        const index = contasAtual.findIndex(c => c.id === clickedId);
+        if (index === -1) return; 
+
+        contasAtual[index].status = newStatus;
+
+        localStorage.setItem(storageKey, JSON.stringify(contasAtual));
+        setContas(contasAtual); // Atualiza o estado
+        setOpenDropdownId(null); // Fecha o dropdown
+    };
+
+    // 5. Funções de Ação (sem mudança na lógica, apenas no nome 'navigate')
+    const handleIncluirClick = () => {
+        navigate('/contas_a_pagar/novo');
+    };
+
+    const handleAlterarClick = () => {
+        if (selectedRow) {
+            navigate(`/contas_a_pagar/editar/${selectedRow}`);
+        } else {
+            alert("Por favor, selecione um título para alterar.");
+        }
+    };
+
+    const handleExcluirClick = () => {
+        if (!selectedRow) {
+            alert("Por favor, selecione um título para excluir.");
+            return;
+        }
+        if (window.confirm("Tem certeza que deseja excluir este título?")) {
+            const novasContas = contas.filter(c => c.id !== selectedRow);
+            setContas(novasContas);
+            localStorage.setItem(storageKey, JSON.stringify(novasContas));
+            setSelectedRow(null);
+        }
     };
 
     return (
@@ -130,10 +210,10 @@ function ContasAPagarPage() {
                     </div>
                     
                     <div style={styles.tableActions}>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
-                        <button disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Alterar</button>
+                        <button onClick={handleIncluirClick} style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
+                        <button onClick={handleAlterarClick} disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Alterar</button>
                         <button disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Visualizar</button>
-                        <button disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#dc3545'})}}>Excluir</button>
+                        <button onClick={handleExcluirClick} disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#dc3545'})}}>Excluir</button>
                     </div>
 
                     <table style={styles.table}>
@@ -144,20 +224,52 @@ function ContasAPagarPage() {
                                 <th style={styles.th}>Fornecedor</th>
                                 <th style={styles.th}>Nº Título</th>
                                 <th style={styles.th}>Emissão</th>
+                                <th style={styles.th}>Vencimento</th>
+                                <th style={styles.th}>Valor</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {contas.map((conta) => {
-                                const isSelected = selectedRow === conta.id;
-                                return (
-                                <tr key={conta.id} onClick={() => setSelectedRow(isSelected ? null : conta.id)} style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}>
-                                    <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
-                                    <td style={styles.td}><span style={{...styles.statusBadge, ...getStatusStyle(conta.status)}}>{conta.status}</span></td>
-                                    <td style={styles.td}>{conta.fornecedor}</td>
-                                    <td style={styles.td}>{conta.numeroTitulo}</td>
-                                    <td style={styles.td}>{new Date(conta.dataEmissao).toLocaleDateString('pt-BR')}</td>
+                            {contas.length > 0 ? (
+                                contas.map((conta) => {
+                                    const isSelected = selectedRow === conta.id;
+                                    return (
+                                        <tr key={conta.id} onClick={() => setSelectedRow(isSelected ? null : conta.id)} style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}>
+                                            <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
+                                            
+                                            {/* 6. CÉLULA DE STATUS ATUALIZADA */}
+                                            <td style={styles.td}>
+                                                <div style={styles.statusContainer}>
+                                                    <span 
+                                                        style={getStatusStyle(conta.status)}
+                                                        onClick={(e) => handleDropdownToggle(e, conta.id)}
+                                                    >
+                                                        {conta.status}
+                                                    </span>
+                                                    {openDropdownId === conta.id && (
+                                                        <div style={styles.statusDropdown}>
+                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Aberto')}>Aberto</div>
+                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Pago')}>Pago</div>
+                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Vencido')}>Vencido</div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+
+                                            <td style={styles.td}>{conta.fornecedor}</td>
+                                            <td style={styles.td}>{conta.numeroTitulo}</td>
+                                            <td style={styles.td}>{new Date(conta.dataEmissao).toLocaleDateString('pt-BR')}</td>
+                                            <td style={styles.td}>{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</td>
+                                            <td style={styles.td}>{`R$ ${conta.valorTitulo}`}</td>
+                                        </tr>
+                                    )
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} style={styles.noDataText}>
+                                        Nenhuma conta a pagar cadastrada.
+                                    </td>
                                 </tr>
-                            )})}
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -167,4 +279,3 @@ function ContasAPagarPage() {
 }
 
 export default ContasAPagarPage;
-

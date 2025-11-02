@@ -1,17 +1,21 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+// 1. Importar useNavigate
+import { Link, useNavigate } from 'react-router-dom';
 
 // --- TYPE DEFINITIONS ---
 type StyleObject = React.CSSProperties;
 
+// 2. Tipo da Conta ATUALIZADO
 type Conta = {
-  id: number;
-  status: 'Aberto' | 'Recebido' | 'Vencido';
+  id: string; // ID do localStorage
+  status: 'Aberto' | 'Recebido' | 'Pendente'; // Status correto
   prefixo: string;
   numeroTitulo: string;
   tipo: string;
   cliente: string;
   dataEmissao: string;
+  valorTitulo: string; 
+  vencimento: string; 
 };
 
 // --- SVG ICONS ---
@@ -20,15 +24,6 @@ const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height
 const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>;
 const ArrowLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
 const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
-
-// --- MOCK DATA ---
-const mockData: Conta[] = [
-    { id: 1, status: 'Aberto', prefixo: 'FAT', numeroTitulo: '7501', tipo: 'Serviço', cliente: 'Alpha Co.', dataEmissao: '2025-10-15' },
-    { id: 2, status: 'Recebido', prefixo: 'NF', numeroTitulo: '3345', tipo: 'NF-e', cliente: 'Omega Inc.', dataEmissao: '2025-09-30' },
-    { id: 3, status: 'Vencido', prefixo: 'BOL', numeroTitulo: '9823', tipo: 'Boleto', cliente: 'Beta Group', dataEmissao: '2025-09-05' },
-    { id: 4, status: 'Aberto', prefixo: 'FAT', numeroTitulo: '7502', tipo: 'Serviço', cliente: 'Gamma LLC', dataEmissao: '2025-10-20' },
-    { id: 5, status: 'Recebido', prefixo: 'NF', numeroTitulo: '3350', tipo: 'NF-e', cliente: 'Alpha Co.', dataEmissao: '2025-10-01' },
-];
 
 // --- STYLES (CSS-in-JS) ---
 const styles: { [key: string]: StyleObject } = {
@@ -62,20 +57,108 @@ const styles: { [key: string]: StyleObject } = {
     trHover: { cursor: 'pointer' },
     trSelected: { backgroundColor: '#e7f5ff' },
     checkbox: { width: '18px', height: '18px' },
-    statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white' },
+    statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white', cursor: 'pointer' }, // Adicionado cursor: pointer
     logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px' },
+    noDataText: { textAlign: 'center', padding: '20px', color: '#6c757d', fontStyle: 'italic' },
+
+    // 3. NOVOS ESTILOS PARA O DROPDOWN DE STATUS
+    statusContainer: {
+        position: 'relative', // Essencial para o dropdown
+        display: 'inline-block',
+    },
+    statusDropdown: {
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        backgroundColor: 'white',
+        border: '1px solid #e0e0e0',
+        borderRadius: '6px',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        zIndex: 10,
+        marginTop: '4px',
+        padding: '5px 0',
+        minWidth: '100px',
+    },
+    statusDropdownItem: {
+        padding: '8px 15px',
+        cursor: 'pointer',
+        fontSize: '0.9rem',
+        color: '#333',
+    },
 };
 
 function ContasAReceberPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
-    const [contas, _setContas] = useState<Conta[]>(mockData);
-    const [selectedRow, setSelectedRow] = useState<number | null>(null);
+    const [contas, setContas] = useState<Conta[]>([]); 
+    const [selectedRow, setSelectedRow] = useState<string | null>(null);
+    const navigate = useNavigate();
+    const storageKey = 'contas_a_receber'; 
 
+    // 4. NOVO ESTADO PARA CONTROLAR O DROPDOWN
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const dadosSalvos = localStorage.getItem(storageKey);
+        if (dadosSalvos) {
+            setContas(JSON.parse(dadosSalvos));
+        }
+    }, []);
+
+    // 5. ESTILOS DE STATUS ATUALIZADOS (Incluindo Amarelo)
     const getStatusStyle = (status: Conta['status']): React.CSSProperties => {
-        if (status === 'Aberto') return { backgroundColor: '#0d6efd' }; // Blue
-        if (status === 'Recebido') return { backgroundColor: '#198754' }; // Green
-        if (status === 'Vencido') return { backgroundColor: '#dc3545' }; // Red
-        return {};
+        if (status === 'Aberto') return { ...styles.statusBadge, backgroundColor: '#0d6efd' }; // Azul
+        if (status === 'Recebido') return { ...styles.statusBadge, backgroundColor: '#198754' }; // Verde
+        if (status === 'Pendente') return { ...styles.statusBadge, backgroundColor: '#ffc107', color: '#333' }; // Amarelo
+        return styles.statusBadge;
+    };
+
+    // 6. FUNÇÃO PARA ABRIR/FECHAR O DROPDOWN
+    const handleDropdownToggle = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // Impede que o clique selecione a linha
+        setOpenDropdownId(prevId => (prevId === id ? null : id));
+    };
+
+    // 7. FUNÇÃO PARA ATUALIZAR O STATUS (vinda do dropdown)
+    const handleStatusUpdate = (e: React.MouseEvent, clickedId: string, newStatus: Conta['status']) => {
+        e.stopPropagation(); // Impede outros cliques
+
+        const contasSalvas = localStorage.getItem(storageKey) || '[]';
+        const contasAtual: Conta[] = JSON.parse(contasSalvas);
+
+        const index = contasAtual.findIndex(c => c.id === clickedId);
+        if (index === -1) return; 
+
+        contasAtual[index].status = newStatus;
+
+        localStorage.setItem(storageKey, JSON.stringify(contasAtual));
+        setContas(contasAtual); // Atualiza o estado
+        setOpenDropdownId(null); // Fecha o dropdown
+    };
+
+    // 8. Funções de Ação (sem mudança na lógica, apenas no nome 'navigate')
+    const handleIncluirClick = () => {
+        navigate('/contas_a_receber/novo');
+    };
+
+    const handleAlterarClick = () => {
+        if (selectedRow) {
+            navigate(`/contas_a_receber/editar/${selectedRow}`);
+        } else {
+            alert("Por favor, selecione um título para alterar.");
+        }
+    };
+
+    const handleExcluirClick = () => {
+        if (!selectedRow) {
+            alert("Por favor, selecione um título para excluir.");
+            return;
+        }
+        if (window.confirm("Tem certeza que deseja excluir este título?")) {
+            const novasContas = contas.filter(c => c.id !== selectedRow);
+            setContas(novasContas);
+            localStorage.setItem(storageKey, JSON.stringify(novasContas));
+            setSelectedRow(null);
+        }
     };
 
     return (
@@ -130,10 +213,10 @@ function ContasAReceberPage() {
                     </div>
                     
                     <div style={styles.tableActions}>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
-                        <button disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Alterar</button>
+                        <button onClick={handleIncluirClick} style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
+                        <button onClick={handleAlterarClick} disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Alterar</button>
                         <button disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Visualizar</button>
-                        <button disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#dc3545'})}}>Excluir</button>
+                        <button onClick={handleExcluirClick} disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#dc3545'})}}>Excluir</button>
                     </div>
 
                     <table style={styles.table}>
@@ -144,20 +227,52 @@ function ContasAReceberPage() {
                                 <th style={styles.th}>Cliente</th>
                                 <th style={styles.th}>Nº Título</th>
                                 <th style={styles.th}>Emissão</th>
+                                <th style={styles.th}>Vencimento</th>
+                                <th style={styles.th}>Valor</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {contas.map((conta) => {
-                                const isSelected = selectedRow === conta.id;
-                                return (
-                                <tr key={conta.id} onClick={() => setSelectedRow(isSelected ? null : conta.id)} style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}>
-                                    <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
-                                    <td style={styles.td}><span style={{...styles.statusBadge, ...getStatusStyle(conta.status)}}>{conta.status}</span></td>
-                                    <td style={styles.td}>{conta.cliente}</td>
-                                    <td style={styles.td}>{conta.numeroTitulo}</td>
-                                    <td style={styles.td}>{new Date(conta.dataEmissao).toLocaleDateString('pt-BR')}</td>
+                            {contas.length > 0 ? (
+                                contas.map((conta) => {
+                                    const isSelected = selectedRow === conta.id;
+                                    return (
+                                        <tr key={conta.id} onClick={() => setSelectedRow(isSelected ? null : conta.id)} style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}>
+                                            <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
+                                            
+                                            {/* 9. CÉLULA DE STATUS ATUALIZADA */}
+                                            <td style={styles.td}>
+                                                <div style={styles.statusContainer}>
+                                                    <span 
+                                                        style={getStatusStyle(conta.status)}
+                                                        onClick={(e) => handleDropdownToggle(e, conta.id)}
+                                                    >
+                                                        {conta.status}
+                                                    </span>
+                                                    {openDropdownId === conta.id && (
+                                                        <div style={styles.statusDropdown}>
+                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Aberto')}>Aberto</div>
+                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Recebido')}>Recebido</div>
+                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Pendente')}>Pendente</div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+
+                                            <td style={styles.td}>{conta.cliente}</td>
+                                            <td style={styles.td}>{conta.numeroTitulo}</td>
+                                            <td style={styles.td}>{new Date(conta.dataEmissao).toLocaleDateString('pt-BR')}</td>
+                                            <td style={styles.td}>{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</td>
+                                            <td style={styles.td}>{`R$ ${conta.valorTitulo}`}</td>
+                                        </tr>
+                                    )
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} style={styles.noDataText}>
+                                        Nenhuma conta a receber cadastrada.
+                                    </td>
                                 </tr>
-                            )})}
+                            )}
                         </tbody>
                     </table>
                 </div>
