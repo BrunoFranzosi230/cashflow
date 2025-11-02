@@ -1,8 +1,22 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+// 1. Importar useNavigate
+import { Link, useNavigate } from 'react-router-dom';
 
 // Tipagem para os objetos de estilo
 type StyleObject = React.CSSProperties;
+
+// 2. Tipagem para o Produto (baseado no formulário)
+type Produto = {
+    id: string; // ID único do localStorage
+    codigo: string;
+    descricao: string;
+    tipo: string;
+    unidade: string;
+    ncm: string;
+    ean: string;
+    precoVenda: string;
+    ipi: string;
+};
 
 // --- Ícones em SVG ---
 const BellIcon = () => (
@@ -49,16 +63,58 @@ const styles: { [key: string]: StyleObject } = {
     headerActionButton: { padding: '10px 20px', border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 },
     tableActions: { marginBottom: '20px' },
     tableActionButton: { padding: '10px 25px', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', marginRight: '10px' },
+    buttonDisabled: { backgroundColor: '#6c757d', cursor: 'not-allowed' }, // Estilo para botão desabilitado
     table: { width: '100%', borderCollapse: 'collapse', marginTop: '20px' },
     th: { padding: '12px 15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', color: '#495057', fontWeight: 600, fontSize: '0.9rem' },
-    td: { padding: '12px 15px', borderBottom: '1px solid #e9ecef', height: '30px' },
-    checkbox: { width: '18px', height: '18px' }
+    td: { padding: '12px 15px', borderBottom: '1px solid #e9ecef' },
+    trHover: { cursor: 'pointer' }, // Estilo para hover na linha
+    trSelected: { backgroundColor: '#e7f5ff' }, // Estilo para linha selecionada
+    checkbox: { width: '18px', height: '18px' },
+    noDataText: { textAlign: 'center', padding: '20px', color: '#6c757d', fontStyle: 'italic' }
 };
 
 function ProdutosPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(true);
     const tableHeaders = ['Código', 'Descrição', 'Tipo', 'Unidade', 'NCM'];
-    const emptyRows = Array.from({ length: 10 });
+    
+    // 3. ESTADOS PARA OS DADOS E NAVEGAÇÃO
+    const [produtos, setProdutos] = useState<Produto[]>([]);
+    const [selectedRow, setSelectedRow] = useState<string | null>(null);
+    const navigate = useNavigate();
+
+    // 4. LER DADOS DO LOCALSTORAGE
+    useEffect(() => {
+        const produtosSalvos = localStorage.getItem('produtos');
+        if (produtosSalvos) {
+            setProdutos(JSON.parse(produtosSalvos));
+        }
+    }, []);
+
+    // 5. FUNÇÕES DE AÇÃO
+    const handleIncluirClick = () => {
+        navigate('/cadastro_produto/novo');
+    };
+
+    const handleAlterarClick = () => {
+        if (selectedRow) {
+            navigate(`/cadastro_produto/editar/${selectedRow}`);
+        } else {
+            alert("Por favor, selecione um produto para alterar.");
+        }
+    };
+
+    const handleExcluirClick = () => {
+        if (!selectedRow) {
+            alert("Por favor, selecione um produto para excluir.");
+            return;
+        }
+        if (window.confirm("Tem certeza que deseja excluir este produto?")) {
+            const novosProdutos = produtos.filter(p => p.id !== selectedRow);
+            setProdutos(novosProdutos);
+            localStorage.setItem('produtos', JSON.stringify(novosProdutos));
+            setSelectedRow(null);
+        }
+    };
 
     return (
         <div style={styles.pageContainer}>
@@ -68,7 +124,6 @@ function ProdutosPage() {
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
                         <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Dashboard</Link></li>
-                        
                         <li>
                             <div 
                                 style={{...styles.navItem, ...styles.navItemActive, padding: '15px 20px', cursor: 'pointer'}}
@@ -91,11 +146,8 @@ function ProdutosPage() {
                                 </ul>
                             )}
                         </li>
-                        
-                        {/* BOTÃO CORRIGIDO/ADICIONADO AQUI */}
-                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
-                        
-                        <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
+                        <li style={styles.navItem}><Link to="/contas-a-pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        <li style={styles.navItem}><Link to="/contas-a-receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
@@ -125,26 +177,45 @@ function ProdutosPage() {
                     </div>
                     
                     <div style={styles.tableActions}>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Alterar</button>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Visualizar</button>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Excluir</button>
+                        <button onClick={handleIncluirClick} style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
+                        <button onClick={handleAlterarClick} disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Alterar</button>
+                        <button disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Visualizar</button>
+                        <button onClick={handleExcluirClick} disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#dc3545'})}}>Excluir</button>
                     </div>
 
                     <table style={styles.table}>
                         <thead>
                             <tr>
-                                <th style={{...styles.th, width: '5%'}}><input type="checkbox" style={styles.checkbox} /></th>
+                                <th style={{...styles.th, width: '5%'}}></th>
                                 {tableHeaders.map(header => <th key={header} style={styles.th}>{header}</th>)}
                             </tr>
                         </thead>
                         <tbody>
-                            {emptyRows.map((_, index) => (
-                                <tr key={index}>
-                                    <td style={styles.td}><input type="checkbox" style={styles.checkbox} /></td>
-                                    {tableHeaders.map(header => <td key={header} style={styles.td}></td>)}
+                            {produtos.length > 0 ? (
+                                produtos.map((produto) => {
+                                    const isSelected = selectedRow === produto.id;
+                                    return (
+                                        <tr 
+                                            key={produto.id} 
+                                            onClick={() => setSelectedRow(isSelected ? null : produto.id)} 
+                                            style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}
+                                        >
+                                            <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
+                                            <td style={styles.td}>{produto.codigo}</td>
+                                            <td style={styles.td}>{produto.descricao}</td>
+                                            <td style={styles.td}>{produto.tipo}</td>
+                                            <td style={styles.td}>{produto.unidade}</td>
+                                            <td style={styles.td}>{produto.ncm}</td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={tableHeaders.length + 1} style={styles.noDataText}>
+                                        Nenhum produto cadastrado.
+                                    </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
