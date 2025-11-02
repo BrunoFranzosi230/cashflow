@@ -267,8 +267,8 @@ function DashboardPage() {
                             )}
                         </li>
                         
-                        <li style={styles.navItem}><Link to="#" style={styles.navLink}>Contas a pagar</Link></li>
-                        <li style={styles.navItem}><Link to="#" style={styles.navLink}>Contas a receber</Link></li>
+                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="#" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>

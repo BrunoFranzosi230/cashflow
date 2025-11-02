@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
-// 1. Importe o componente Link
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+// 1. Importe o 'useNavigate'
+import { Link, useNavigate } from 'react-router-dom';
 
 // Tipagem para os objetos de estilo
 type StyleObject = React.CSSProperties;
+
+// 2. DEFINIÇÃO DO TIPO CLIENTE (COM ID)
+type Cliente = {
+    id: string; // ID único
+    codigo: string;
+    razaoSocial: string;
+    cpfCnpj: string;
+    telefone: string;
+    inscricaoEstadual: string;
+};
 
 // --- Ícones em SVG ---
 const BellIcon = () => (
@@ -71,7 +81,6 @@ const styles: { [key: string]: StyleObject } = {
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    // 2. Adicionei um estilo para os links para remover a decoração padrão
     navLink: {
         display: 'block',
         padding: '15px 20px',
@@ -182,6 +191,10 @@ const styles: { [key: string]: StyleObject } = {
         cursor: 'pointer',
         marginRight: '10px',
     },
+    buttonDisabled: { 
+        backgroundColor: '#6c757d', 
+        cursor: 'not-allowed' 
+    },
     table: {
         width: '100%',
         borderCollapse: 'collapse',
@@ -198,18 +211,66 @@ const styles: { [key: string]: StyleObject } = {
     td: {
         padding: '12px 15px',
         borderBottom: '1px solid #e9ecef',
-        height: '30px'
+    }, 
+    trHover: { 
+        cursor: 'pointer' 
+    },
+    trSelected: { 
+        backgroundColor: '#e7f5ff' 
     },
     checkbox: {
         width: '18px',
         height: '18px',
+    },
+    noDataText: {
+        textAlign: 'center',
+        padding: '20px',
+        color: '#6c757d',
+        fontStyle: 'italic'
     }
 };
 
 function ClientesPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(true);
+    const [selectedRow, setSelectedRow] = useState<string | null>(null); // Salva o ID (string)
+    const navigate = useNavigate();
+    
+    const [clientes, setClientes] = useState<Cliente[]>([]);
+
     const tableHeaders = ['Código', 'Razão Social', 'CPF/CNPJ', 'Telefone', 'Inscrição Estadual'];
-    const emptyRows = Array.from({ length: 10 });
+    
+    useEffect(() => {
+        const clientesSalvos = localStorage.getItem('clientes');
+        if (clientesSalvos) {
+            setClientes(JSON.parse(clientesSalvos));
+        }
+    }, []);
+
+    const handleIncluirClick = () => {
+        navigate('/cadastro_cliente/novo');
+    };
+
+    // 3. FUNÇÃO PARA NAVEGAR PARA A PÁGINA DE ALTERAÇÃO
+    const handleAlterarClick = () => {
+        if (selectedRow) {
+            navigate(`/cadastro_cliente/editar/${selectedRow}`);
+        } else {
+            alert("Por favor, selecione um cliente para alterar.");
+        }
+    };
+
+    const handleExcluirClick = () => {
+        if (!selectedRow) {
+            alert("Por favor, selecione um cliente para excluir.");
+            return;
+        }
+        if (window.confirm("Tem certeza que deseja excluir este cliente?")) {
+            const novosClientes = clientes.filter(cliente => cliente.id !== selectedRow);
+            setClientes(novosClientes);
+            localStorage.setItem('clientes', JSON.stringify(novosClientes));
+            setSelectedRow(null);
+        }
+    };
 
     return (
         <div style={styles.pageContainer}>
@@ -218,9 +279,7 @@ function ClientesPage() {
                 <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> Usuário!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
-                        {/* 3. Envolvemos os links com o componente <Link> */}
                         <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Dashboard</Link></li>
-                        
                         <li>
                             <div 
                                 style={{...styles.navItem, ...styles.navItemActive, padding: '15px 20px', cursor: 'pointer'}}
@@ -243,7 +302,6 @@ function ClientesPage() {
                                 </ul>
                             )}
                         </li>
-
                         <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
                         <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
@@ -252,7 +310,6 @@ function ClientesPage() {
                 <button style={styles.logoutButton}><ArrowLeftIcon /></button>
             </aside>
 
-            {/* Conteúdo Principal */}
             <main style={styles.mainContent}>
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
@@ -276,26 +333,46 @@ function ClientesPage() {
                     </div>
                     
                     <div style={styles.tableActions}>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Alterar</button>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Visualizar</button>
-                        <button style={{...styles.tableActionButton, backgroundColor: '#343a40'}}>Excluir</button>
+                        <button onClick={handleIncluirClick} style={{...styles.tableActionButton, backgroundColor: '#0d6efd'}}>Incluir</button>
+                        {/* 4. BOTÃO "ALTERAR" AGORA CHAMA A NOVA FUNÇÃO */}
+                        <button onClick={handleAlterarClick} disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Alterar</button>
+                        <button disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#343a40'})}}>Visualizar</button>
+                        <button onClick={handleExcluirClick} disabled={!selectedRow} style={{...styles.tableActionButton, ...(!selectedRow ? styles.buttonDisabled : {backgroundColor: '#dc3545'})}}>Excluir</button>
                     </div>
 
                     <table style={styles.table}>
                         <thead>
                             <tr>
-                                <th style={{...styles.th, width: '5%'}}><input type="checkbox" style={styles.checkbox} /></th>
+                                <th style={{...styles.th, width: '5%'}}></th>
                                 {tableHeaders.map(header => <th key={header} style={styles.th}>{header}</th>)}
                             </tr>
                         </thead>
                         <tbody>
-                            {emptyRows.map((_, index) => (
-                                <tr key={index}>
-                                    <td style={styles.td}><input type="checkbox" style={styles.checkbox} /></td>
-                                    {tableHeaders.map(header => <td key={header} style={styles.td}></td>)}
+                            {clientes.length > 0 ? (
+                                clientes.map((cliente) => {
+                                    const isSelected = selectedRow === cliente.id;
+                                    return (
+                                        <tr 
+                                            key={cliente.id} 
+                                            onClick={() => setSelectedRow(isSelected ? null : cliente.id)} 
+                                            style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}
+                                        >
+                                            <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
+                                            <td style={styles.td}>{cliente.codigo}</td>
+                                            <td style={styles.td}>{cliente.razaoSocial}</td>
+                                            <td style={styles.td}>{cliente.cpfCnpj}</td>
+                                            <td style={styles.td}>{cliente.telefone}</td>
+                                            <td style={styles.td}>{cliente.inscricaoEstadual}</td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={tableHeaders.length + 1} style={styles.noDataText}>
+                                        Nenhum cliente cadastrado.
+                                    </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>

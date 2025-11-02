@@ -10,6 +10,13 @@ import ClientesPage from './Pages/Cadastro_cliente.tsx';
 import FornecedoresPage from './Pages/Cadastro_fornecedor.tsx';
 import ProdutosPage from './Pages/Cadastro_produto.tsx';
 import ContasAPagarPage from './Pages/Contas_pagar.tsx';
+import ForgotPasswordPage from './Pages/Forgot_password.tsx';
+import ContasAReceberPage from './Pages/Contas_receber.tsx';
+import ClientesIncluirPage from './Pages/Cliente_incluir.tsx';
+import FornecedoresIncluirPage from './Pages/Fornecedores_Incluir.tsx';
+import ProdutosIncluirPage from './Pages/Produto_incluir.tsx';
+import ContasPagarIncluirPage from './Pages/ContasPagarIncluir.tsx';
+import ContasReceberIncluirPage from './Pages/ContasReceberIncluir.tsx';
 
 // 3. Cria o "mapa" de rotas
 const router = createBrowserRouter([
@@ -22,6 +29,10 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "/Forgot_pass",
+    element: <ForgotPasswordPage />,
+  },
+  {
     path: "/dashboard", // Quando a URL for /dashboard...
     element: <DashboardPage />, // ...mostre esta página
   },
@@ -29,17 +40,62 @@ const router = createBrowserRouter([
     path: "/cadastro_cliente",
     element: <ClientesPage />, // Página de cadastro de cliente
   },
-   {
+  {
+    path: "/cadastro_cliente/novo",
+    element: <ClientesIncluirPage />, // Página para incluir novo cliente
+  },
+  {
+    path: "/cadastro_cliente/editar/:id", 
+    element: <ClientesIncluirPage />,
+  },
+  {
     path: "/cadastro_fornecedor",
     element: <FornecedoresPage />, // Página de cadastro de fornecedor
+  },
+  {
+    path: "/cadastro_fornecedor/novo",
+    element: <FornecedoresIncluirPage />,
+  },
+  {
+    path: "/cadastro_fornecedor/editar/:id",
+    element: <FornecedoresIncluirPage />,
   },
   {
     path: "/cadastro_produto",
     element: <ProdutosPage />, // Página de cadastro de produto
   },
+
+  {
+    path: "/cadastro_produto/novo",
+    element: <ProdutosIncluirPage />,
+  },
+  {
+    path: "/cadastro_produto/editar/:id",
+    element: <ProdutosIncluirPage />,
+  },
   {
     path: "/contas_a_pagar",
     element: <ContasAPagarPage />, // Página de contas a pagar
+  },
+  {
+    path: "/contas_a_pagar/novo",
+    element: <ContasPagarIncluirPage />,
+  },
+  {
+    path: "/contas_a_pagar/editar/:id",
+    element: <ContasPagarIncluirPage />,
+  },
+  {
+    path: "/contas_a_receber",
+    element: <ContasAReceberPage />, // Página de contas a receber
+  },
+  {
+    path: "/contas_a_receber/novo",
+    element: <ContasReceberIncluirPage />,
+  },
+  {
+    path: "/contas_a_receber/editar/:id",
+    element: <ContasReceberIncluirPage />,
   },
 ]);
 

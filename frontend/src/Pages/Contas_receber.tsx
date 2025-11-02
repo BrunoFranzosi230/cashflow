@@ -1,29 +1,31 @@
 import React, { useState, useEffect } from 'react';
+// 1. Importar useNavigate
 import { Link, useNavigate } from 'react-router-dom';
 
-// --- TIPAGEM ---
+// --- TYPE DEFINITIONS ---
 type StyleObject = React.CSSProperties;
 
+// 2. Tipo da Conta ATUALIZADO
 type Conta = {
   id: string; // ID do localStorage
-  status: 'Aberto' | 'Pago' | 'Vencido';
+  status: 'Aberto' | 'Recebido' | 'Pendente'; // Status correto
   prefixo: string;
   numeroTitulo: string;
   tipo: string;
-  fornecedor: string;
+  cliente: string;
   dataEmissao: string;
   valorTitulo: string; 
   vencimento: string; 
 };
 
-// --- ÍCONES SVG ---
+// --- SVG ICONS ---
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>;
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
 const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>;
 const ArrowLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
 const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
 
-// --- ESTILOS ---
+// --- STYLES (CSS-in-JS) ---
 const styles: { [key: string]: StyleObject } = {
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
@@ -55,11 +57,11 @@ const styles: { [key: string]: StyleObject } = {
     trHover: { cursor: 'pointer' },
     trSelected: { backgroundColor: '#e7f5ff' },
     checkbox: { width: '18px', height: '18px' },
-    statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white', cursor: 'pointer' }, // Cursor pointer
+    statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white', cursor: 'pointer' }, // Adicionado cursor: pointer
     logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px' },
     noDataText: { textAlign: 'center', padding: '20px', color: '#6c757d', fontStyle: 'italic' },
 
-    // 1. NOVOS ESTILOS PARA O DROPDOWN DE STATUS
+    // 3. NOVOS ESTILOS PARA O DROPDOWN DE STATUS
     statusContainer: {
         position: 'relative', // Essencial para o dropdown
         display: 'inline-block',
@@ -85,14 +87,14 @@ const styles: { [key: string]: StyleObject } = {
     },
 };
 
-function ContasAPagarPage() {
+function ContasAReceberPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
     const [contas, setContas] = useState<Conta[]>([]); 
-    const [selectedRow, setSelectedRow] = useState<string | null>(null); 
+    const [selectedRow, setSelectedRow] = useState<string | null>(null);
     const navigate = useNavigate();
-    const storageKey = 'contas_a_pagar'; 
-    
-    // 2. NOVO ESTADO PARA CONTROLAR O DROPDOWN
+    const storageKey = 'contas_a_receber'; 
+
+    // 4. NOVO ESTADO PARA CONTROLAR O DROPDOWN
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -102,20 +104,21 @@ function ContasAPagarPage() {
         }
     }, []);
 
+    // 5. ESTILOS DE STATUS ATUALIZADOS (Incluindo Amarelo)
     const getStatusStyle = (status: Conta['status']): React.CSSProperties => {
         if (status === 'Aberto') return { ...styles.statusBadge, backgroundColor: '#0d6efd' }; // Azul
-        if (status === 'Pago') return { ...styles.statusBadge, backgroundColor: '#198754' }; // Verde
-        if (status === 'Vencido') return { ...styles.statusBadge, backgroundColor: '#dc3545' }; // Vermelho
+        if (status === 'Recebido') return { ...styles.statusBadge, backgroundColor: '#198754' }; // Verde
+        if (status === 'Pendente') return { ...styles.statusBadge, backgroundColor: '#ffc107', color: '#333' }; // Amarelo
         return styles.statusBadge;
     };
 
-    // 3. FUNÇÃO PARA ABRIR/FECHAR O DROPDOWN
+    // 6. FUNÇÃO PARA ABRIR/FECHAR O DROPDOWN
     const handleDropdownToggle = (e: React.MouseEvent, id: string) => {
         e.stopPropagation(); // Impede que o clique selecione a linha
         setOpenDropdownId(prevId => (prevId === id ? null : id));
     };
 
-    // 4. FUNÇÃO PARA ATUALIZAR O STATUS (vinda do dropdown)
+    // 7. FUNÇÃO PARA ATUALIZAR O STATUS (vinda do dropdown)
     const handleStatusUpdate = (e: React.MouseEvent, clickedId: string, newStatus: Conta['status']) => {
         e.stopPropagation(); // Impede outros cliques
 
@@ -132,14 +135,14 @@ function ContasAPagarPage() {
         setOpenDropdownId(null); // Fecha o dropdown
     };
 
-    // 5. Funções de Ação (sem mudança na lógica, apenas no nome 'navigate')
+    // 8. Funções de Ação (sem mudança na lógica, apenas no nome 'navigate')
     const handleIncluirClick = () => {
-        navigate('/contas_a_pagar/novo');
+        navigate('/contas_a_receber/novo');
     };
 
     const handleAlterarClick = () => {
         if (selectedRow) {
-            navigate(`/contas_a_pagar/editar/${selectedRow}`);
+            navigate(`/contas_a_receber/editar/${selectedRow}`);
         } else {
             alert("Por favor, selecione um título para alterar.");
         }
@@ -179,8 +182,8 @@ function ContasAPagarPage() {
                                 </ul>
                             )}
                         </li>
-                        <li style={{...styles.navItem, ...styles.navItemActive}}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
-                        <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
+                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        <li style={{...styles.navItem, ...styles.navItemActive}}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
@@ -202,7 +205,7 @@ function ContasAPagarPage() {
 
                 <div style={styles.content}>
                     <div style={styles.contentHeader}>
-                        <h1 style={styles.contentTitle}>Contas a Pagar</h1>
+                        <h1 style={styles.contentTitle}>Contas a Receber</h1>
                         <div style={styles.actions}>
                             <button style={styles.headerActionButton}>Exportar</button>
                             <button style={styles.headerActionButton}>Filtro <FilterIcon /></button>
@@ -221,7 +224,7 @@ function ContasAPagarPage() {
                             <tr>
                                 <th style={{...styles.th, width: '5%'}}></th>
                                 <th style={styles.th}>Status</th>
-                                <th style={styles.th}>Fornecedor</th>
+                                <th style={styles.th}>Cliente</th>
                                 <th style={styles.th}>Nº Título</th>
                                 <th style={styles.th}>Emissão</th>
                                 <th style={styles.th}>Vencimento</th>
@@ -236,7 +239,7 @@ function ContasAPagarPage() {
                                         <tr key={conta.id} onClick={() => setSelectedRow(isSelected ? null : conta.id)} style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}>
                                             <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
                                             
-                                            {/* 6. CÉLULA DE STATUS ATUALIZADA */}
+                                            {/* 9. CÉLULA DE STATUS ATUALIZADA */}
                                             <td style={styles.td}>
                                                 <div style={styles.statusContainer}>
                                                     <span 
@@ -248,14 +251,14 @@ function ContasAPagarPage() {
                                                     {openDropdownId === conta.id && (
                                                         <div style={styles.statusDropdown}>
                                                             <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Aberto')}>Aberto</div>
-                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Pago')}>Pago</div>
-                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Vencido')}>Vencido</div>
+                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Recebido')}>Recebido</div>
+                                                            <div style={styles.statusDropdownItem} onClick={(e) => handleStatusUpdate(e, conta.id, 'Pendente')}>Pendente</div>
                                                         </div>
                                                     )}
                                                 </div>
                                             </td>
 
-                                            <td style={styles.td}>{conta.fornecedor}</td>
+                                            <td style={styles.td}>{conta.cliente}</td>
                                             <td style={styles.td}>{conta.numeroTitulo}</td>
                                             <td style={styles.td}>{new Date(conta.dataEmissao).toLocaleDateString('pt-BR')}</td>
                                             <td style={styles.td}>{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</td>
@@ -266,7 +269,7 @@ function ContasAPagarPage() {
                             ) : (
                                 <tr>
                                     <td colSpan={7} style={styles.noDataText}>
-                                        Nenhuma conta a pagar cadastrada.
+                                        Nenhuma conta a receber cadastrada.
                                     </td>
                                 </tr>
                             )}
@@ -278,4 +281,4 @@ function ContasAPagarPage() {
     );
 }
 
-export default ContasAPagarPage;
+export default ContasAReceberPage;
