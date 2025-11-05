@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-// --- CHANGE 1: Import Link from react-router-dom ---
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-// Tipagem para os objetos de estilo (boa prática em TypeScript)
+// Tipagem para os objetos de estilo
 type StyleObject = React.CSSProperties;
 
 // ESTILOS GLOBAIS
@@ -142,31 +141,69 @@ const styles: { [key: string]: StyleObject } = {
   },
 };
 
+// Ícones SVG para mostrar e ocultar senha
+const EyeOpenIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+);
+
+const EyeClosedIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+    </svg>
+);
+
+
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = '/dashboard';
+    setError(''); 
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/token/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username, 
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Usuário ou senha inválidos.');
+      }
+
+      const data = await response.json();
+
+      if (data.access) {
+        localStorage.setItem('authToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
+        navigate('/dashboard');
+      }
+
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Ocorreu um erro inesperado.');
+      }
+    }
   };
-
-  const EyeOpenIcon = (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-      <circle cx="12" cy="12" r="3"></circle>
-    </svg>
-  );
-
-  const EyeClosedIcon = (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-        <line x1="1" y1="1" x2="23" y2="23"></line>
-    </svg>
-  );
 
   return (
     <>
@@ -174,19 +211,25 @@ function LoginPage() {
       <div style={styles.container}>
         <div style={styles.loginCard}>
           <div style={styles.infoPanel}>
-            <h1 style={styles.infoPanelH1}>Olá, <br /> Bem-vindo!</h1>
+              <h1 style={styles.infoPanelH1}>Olá, <br /> Bem-vindo!</h1>
           </div>
           <div style={styles.formPanel}>
             <h2 style={styles.formPanelH2}>Login</h2>
+            
             <form onSubmit={handleLogin}>
               <div style={styles.formGroup}>
-                <label htmlFor="email" style={styles.label}>E-mail</label>
+                <label htmlFor="username" style={styles.label}>Username</label>
                 <input 
-                  type="email" 
-                  id="email" 
+                  // --- CORREÇÃO APLICADA AQUI ---
+                  type="text" // MUDADO DE 'email' PARA 'text'
+                  // ------------------------------
+                  id="username"
+                  name="username"
                   style={styles.input}
-                  placeholder="Digite seu e-mail" 
+                  placeholder="Digite seu usuário" 
                   required 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
               <div style={styles.formGroup}>
@@ -194,23 +237,31 @@ function LoginPage() {
                 <div style={styles.passwordContainer}>
                   <input 
                     type={showPassword ? 'text' : 'password'}
-                    id="password" 
+                    id="password"
+                    name="password" 
                     style={{...styles.input, ...styles.passwordInput}}
                     placeholder="Digite sua senha" 
                     required 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                   <button 
                     type="button" 
                     onClick={togglePasswordVisibility} 
                     style={styles.toggleButton}
                   >
-                    {showPassword ? EyeClosedIcon : EyeOpenIcon}
+                    {showPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
                   </button>
                 </div>
               </div>
               
-              {/* --- CHANGE 2: Use Link for navigation --- */}
-              <Link to="/forgot_pass" style={styles.forgotPassword}>
+              {error && (
+                <p style={{ color: 'red', textAlign: 'center', fontSize: '0.9rem' }}>
+                  {error}
+                </p>
+              )}
+
+              <Link to="/Forgot_pass" style={styles.forgotPassword}>
                 Esqueceu a senha?
               </Link>
               

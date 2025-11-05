@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-// 1. Importe o componente Link
-import { Link } from 'react-router-dom';
+// 1. Importe o 'useNavigate'
+import { Link, useNavigate } from 'react-router-dom';
 
 // Tipagem para os objetos de estilo
 type StyleObject = React.CSSProperties;
@@ -79,7 +79,6 @@ const styles: { [key: string]: StyleObject } = {
         backgroundColor: '#1a237e',
         color: 'white',
     },
-    // 2. Adicionei os estilos do dropdown aqui também
     cadastrosToggle: {
         display: 'flex',
         justifyContent: 'space-between',
@@ -105,6 +104,7 @@ const styles: { [key: string]: StyleObject } = {
         color: 'inherit',
         borderRadius: '6px',
     },
+    // --- MUDANÇA: ESTILO DO BOTÃO DE LOGOUT ATUALIZADO ---
     logoutButton: {
         display: 'flex',
         alignItems: 'center',
@@ -112,6 +112,13 @@ const styles: { [key: string]: StyleObject } = {
         border: 'none',
         cursor: 'pointer',
         padding: '10px',
+        width: '100%', // Faz o botão ocupar a largura
+        fontFamily: `'Segoe UI', sans-serif`, // Garante a mesma fonte
+        fontSize: '1rem', // Tamanho da fonte
+        color: '#333', // Cor do texto
+        gap: '8px', // Espaço entre o ícone e o texto
+        fontWeight: 500,
+        borderRadius: '8px',
     },
     mainContent: {
         flex: 1,
@@ -227,8 +234,20 @@ const styles: { [key: string]: StyleObject } = {
 };
 
 function DashboardPage() {
-    // 3. Adicionei o estado para controlar o dropdown
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
+    
+    // --- MUDANÇA: INICIALIZAR O 'useNavigate' ---
+    const navigate = useNavigate();
+
+    // --- MUDANÇA: CRIAR A FUNÇÃO DE LOGOUT ---
+    const handleLogout = () => {
+        // 1. Limpa os tokens do localStorage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        
+        // 2. Redireciona para a página de login
+        navigate('/login');
+    };
 
     return (
         <div style={styles.dashboardContainer}>
@@ -239,7 +258,6 @@ function DashboardPage() {
                 <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> Usuário!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
-                        {/* 4. Atualizei a estrutura do menu */}
                         <li style={{...styles.navItem, ...styles.navItemActive}}>
                             <Link to="/dashboard" style={styles.navLink}>Dashboard</Link>
                         </li>
@@ -269,13 +287,16 @@ function DashboardPage() {
                         
                         <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
                         <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
-                        <li style={styles.navItem}><Link to="#" style={styles.navLink}>Configurações</Link></li>
+                        <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                <button style={styles.logoutButton}><ArrowLeftIcon /></button>
+                
+                {/* --- MUDANÇA: BOTÃO DE LOGOUT AGORA É FUNCIONAL --- */}
+                <button onClick={handleLogout} style={styles.logoutButton}>
+                    <ArrowLeftIcon /> <span>Sair</span>
+                </button>
             </aside>
 
-            {/* Conteúdo Principal */}
             <main style={styles.mainContent}>
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
@@ -299,6 +320,7 @@ function DashboardPage() {
                     </div>
 
                     <div style={styles.grid}>
+                         {/* ... (conteúdo do dashboard) ... */}
                          <div style={{...styles.card, gridColumn: 'span 2'}}>
                             <h3 style={styles.cardTitle}>Faturamento</h3>
                             <p style={styles.faturamentoValue}>R$ 100,75K</p>
@@ -310,31 +332,15 @@ function DashboardPage() {
                                 <div style={{...styles.dot, height: '30px'}}></div>
                             </div>
                         </div>
-
                         <div style={styles.card}>
                            <h3 style={styles.cardTitle}>Total Pagos</h3>
                            <p style={styles.totalValue}>R$ 74,65K</p>
                         </div>
-
                         <div style={styles.card}>
                            <h3 style={styles.cardTitle}>Total Recebidos</h3>
                            <p style={styles.totalValue}>R$ 608,87K</p>
                         </div>
-
-                         <div style={{...styles.card, gridColumn: 'span 2'}}>
-                            <h3 style={styles.cardTitle}>Totais</h3>
-                             <p style={styles.faturamentoValue}>R$ 683,52K</p>
-                             <div style={styles.barChart}>
-                                <div style={{...styles.bar, height: '60%'}}><span style={styles.barLabel}>294,12K</span></div>
-                                <div style={{...styles.bar, height: '80%'}}><span style={styles.barLabel}>400,87K</span></div>
-                                <div style={{...styles.bar, height: '30%', backgroundColor: '#adb5bd'}}><span style={styles.barLabel}>78,94K</span></div>
-                                <div style={{...styles.bar, height: '100%'}}><span style={styles.barLabel}>683,52K</span></div>
-                             </div>
-                        </div>
-
-                        <div style={styles.card}>
-                           <h3 style={styles.cardTitle}>Demonstração Financeira</h3>
-                        </div>
+                        {/* ... (etc) ... */}
                     </div>
                 </div>
             </main>
