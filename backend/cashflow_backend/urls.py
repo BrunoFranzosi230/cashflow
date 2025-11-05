@@ -1,19 +1,18 @@
 from django.contrib import admin
-from django.urls import path, include # Importe 'include'
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from django.urls import path, include
+
+# 1. REMOVA a importação do 'TokenObtainPairView' daqui
+from rest_framework_simplejwt.views import TokenRefreshView
+
+# 2. IMPORTE a NOSSA view customizada
+from api.views import MyTokenObtainPairView 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Endpoint de Login (o React vai chamar este)
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # 3. USE A NOSSA VIEW na rota de 'api/token/'
+    path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     
-    # Endpoint para renovar o token (opcional, mas bom ter)
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
-    # Inclui todas as URLs da sua app 'api'
     path('api/', include('api.urls')),
 ]

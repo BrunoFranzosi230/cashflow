@@ -3,15 +3,25 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserSerializer
 
+# 1. IMPORTAR A VIEW DE TOKEN E NOSSOS SERIALIZERS
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import UserSerializer, MyTokenObtainPairSerializer
+
+# --- 2. ADICIONE ESTA NOVA CLASSE VIEW ---
+class MyTokenObtainPairView(TokenObtainPairView):
+    """
+    Usa o nosso serializer customizado para incluir
+    username e email no token.
+    """
+    serializer_class = MyTokenObtainPairSerializer
+
+# --- O RESTANTE DO SEU ARQUIVO views.py ---
+
+# View de Registro (JÁ EXISTE)
 @api_view(['POST'])
-@permission_classes([AllowAny]) # Qualquer um pode se registrar
+@permission_classes([AllowAny])
 def register_user(request):
-    """
-    Cria um novo usuário.
-    Espera "username" e "password" no body.
-    """
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -19,11 +29,8 @@ def register_user(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# View Protegida (JÁ EXISTE)
 @api_view(['GET'])
-@permission_classes([IsAuthenticated]) # Só usuários logados (com token)
+@permission_classes([IsAuthenticated])
 def protected_view(request):
-    """
-    Uma view de teste que só pode ser acessada se um
-    token JWT válido for enviado no Header 'Authorization'.
-    """
     return Response(data={"message": f"Olá, {request.user.username}! Você está autenticado."})

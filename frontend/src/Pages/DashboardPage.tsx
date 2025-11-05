@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-// 1. Importe o 'useNavigate'
+import React, { useState, useEffect } from 'react'; // 1. Importar useEffect
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // 2. Importar o decoder
 
 // Tipagem para os objetos de estilo
 type StyleObject = React.CSSProperties;
+
+// 3. (Opcional mas recomendado) Criar uma interface para o payload do token
+interface TokenPayload {
+    username: string;
+    email: string;
+    // (quaisquer outros dados que você adicionou)
+}
 
 // --- Ícones em SVG ---
 const BellIcon = () => (
@@ -104,7 +111,6 @@ const styles: { [key: string]: StyleObject } = {
         color: 'inherit',
         borderRadius: '6px',
     },
-    // --- MUDANÇA: ESTILO DO BOTÃO DE LOGOUT ATUALIZADO ---
     logoutButton: {
         display: 'flex',
         alignItems: 'center',
@@ -112,11 +118,11 @@ const styles: { [key: string]: StyleObject } = {
         border: 'none',
         cursor: 'pointer',
         padding: '10px',
-        width: '100%', // Faz o botão ocupar a largura
-        fontFamily: `'Segoe UI', sans-serif`, // Garante a mesma fonte
-        fontSize: '1rem', // Tamanho da fonte
-        color: '#333', // Cor do texto
-        gap: '8px', // Espaço entre o ícone e o texto
+        width: '100%',
+        fontFamily: `'Segoe UI', sans-serif`,
+        fontSize: '1rem',
+        color: '#333',
+        gap: '8px',
         fontWeight: 500,
         borderRadius: '8px',
     },
@@ -235,17 +241,39 @@ const styles: { [key: string]: StyleObject } = {
 
 function DashboardPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
-    
-    // --- MUDANÇA: INICIALIZAR O 'useNavigate' ---
     const navigate = useNavigate();
 
-    // --- MUDANÇA: CRIAR A FUNÇÃO DE LOGOUT ---
+    // 4. Criar estado para o usuário
+    const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
+
+    // 5. useEffect para ler e decodificar o token
+    useEffect(() => {
+        const token = localStorage.getItem('authToken');
+        
+        if (token) {
+            try {
+                // Decodifica o token
+                const decodedToken = jwtDecode<TokenPayload>(token);
+                
+                // Salva os dados no estado
+                setUser({
+                    username: decodedToken.username,
+                    email: decodedToken.email || 'Nenhum e-mail' // Caso o email seja opcional
+                });
+            } catch (error) {
+                console.error("Erro ao decodificar o token:", error);
+                // Se o token for inválido, desloga o usuário
+                handleLogout();
+            }
+        } else {
+            // Se não houver token, desloga
+            handleLogout();
+        }
+    }, []); // O array vazio [] faz isso rodar só uma vez
+
     const handleLogout = () => {
-        // 1. Limpa os tokens do localStorage
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
-        
-        // 2. Redireciona para a página de login
         navigate('/login');
     };
 
@@ -255,7 +283,8 @@ function DashboardPage() {
                 <div style={styles.sidebarHeader}>
                     <h1 style={styles.logo}>CashFlow</h1>
                 </div>
-                <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> Usuário!</h2>
+                {/* 6. MENSAGEM DE BOAS-VINDAS ATUALIZADA */}
+                <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
                         <li style={{...styles.navItem, ...styles.navItemActive}}>
@@ -291,7 +320,6 @@ function DashboardPage() {
                     </ul>
                 </nav>
                 
-                {/* --- MUDANÇA: BOTÃO DE LOGOUT AGORA É FUNCIONAL --- */}
                 <button onClick={handleLogout} style={styles.logoutButton}>
                     <ArrowLeftIcon /> <span>Sair</span>
                 </button>
@@ -301,11 +329,13 @@ function DashboardPage() {
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
+                    
+                    {/* 7. ÁREA DO USUÁRIO ATUALIZADA */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
-                            <strong>Usuário</strong><br/>
-                            <small>usuario@email.com</small>
+                            <strong>{user.username}</strong><br/>
+                            <small>{user.email}</small>
                         </div>
                     </div>
                 </header>
@@ -320,7 +350,6 @@ function DashboardPage() {
                     </div>
 
                     <div style={styles.grid}>
-                         {/* ... (conteúdo do dashboard) ... */}
                          <div style={{...styles.card, gridColumn: 'span 2'}}>
                             <h3 style={styles.cardTitle}>Faturamento</h3>
                             <p style={styles.faturamentoValue}>R$ 100,75K</p>
@@ -340,7 +369,6 @@ function DashboardPage() {
                            <h3 style={styles.cardTitle}>Total Recebidos</h3>
                            <p style={styles.totalValue}>R$ 608,87K</p>
                         </div>
-                        {/* ... (etc) ... */}
                     </div>
                 </div>
             </main>
