@@ -6,7 +6,7 @@ from . import views
 router = DefaultRouter()
 # Registra a rota '/api/clientes/' usando o ClienteViewSet
 router.register(r'clientes', views.ClienteViewSet, basename='cliente')
-
+router.register(r'fornecedores', views.FornecedorViewSet, basename='fornecedor')
 # 4. Adicione as rotas do router ao urlpatterns
 urlpatterns = [
     # Suas rotas existentes

@@ -6,8 +6,8 @@ from rest_framework import status, viewsets # 1. Importe 'viewsets'
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 # 2. IMPORTE O MODELO E SERIALIZER DO CLIENTE
-from .serializers import UserSerializer, MyTokenObtainPairSerializer, ClienteSerializer
-from .models import Cliente
+from .serializers import UserSerializer, MyTokenObtainPairSerializer, ClienteSerializer, FornecedorSerializer
+from .models import Cliente, Fornecedor
 
 # (View de Token - Você já tem)
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -53,5 +53,25 @@ class ClienteViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """
         Define o usuário do novo cliente como o usuário logado.
+        """
+        serializer.save(user=self.request.user)
+
+class FornecedorViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint que permite fornecedores serem vistos ou editados.
+    """
+    serializer_class = FornecedorSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Retorna uma lista de fornecedores apenas
+        para o usuário logado no momento.
+        """
+        return Fornecedor.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        """
+        Define o usuário do novo fornecedor como o usuário logado.
         """
         serializer.save(user=self.request.user)

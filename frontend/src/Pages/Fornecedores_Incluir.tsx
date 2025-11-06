@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// 1. Importar 'useParams' e 'jwtDecode'
+// 1. Importar jwtDecode
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
@@ -16,32 +16,27 @@ interface TokenPayload {
 type FornecedorFormData = {
   codigo: string;
   razaoSocial: string;
-  nomeFantasia: string;
+  nomeFantasia: string | null;
   endereco: string;
-  bairro: string;
+  bairro: string | null;
   cidade: string;
-  cep: string;
+  cep: string | null;
   estado: string;
   cpfCnpj: string;
-  telefone: string;
-  inscricaoEstadual: string;
-  email: string;
-  tipoPessoa: string;
-  tipo: string;
+  telefone: string | null;
+  inscricaoEstadual: string | null;
+  email: string | null;
+  tipoPessoa: string | null;
+  tipo: string | null;
 };
 
-// Tipagem do Fornecedor (com ID)
-type Fornecedor = FornecedorFormData & {
-  id: string;
-};
-
-// --- ÍCONES SVG ---
+// --- Ícones (mesmos de antes) ---
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>;
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
 const ArrowLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
 const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
 
-// --- ESTILOS DO COMPONENTE ---
+// --- Estilos (mesmos de antes) ---
 const styles: { [key: string]: StyleObject } = {
     // ... (Seus estilos completos aqui) ...
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
@@ -59,7 +54,7 @@ const styles: { [key: string]: StyleObject } = {
     subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem' },
     subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px' },
     subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
-    // 3. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
+    // 3. ESTILO DO BOTÃO DE LOGOUT
     logoutButton: { 
         display: 'flex', 
         alignItems: 'center', 
@@ -108,8 +103,8 @@ function FornecedoresIncluirPage() {
       telefone: '', inscricaoEstadual: '',
       email: '', tipoPessoa: '', tipo: '',
     });
-
-    // 4. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
+    
+    // 4. LÓGICA DE USUÁRIO E LOGOUT
     const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
 
     const handleLogout = () => {
@@ -118,12 +113,10 @@ function FornecedoresIncluirPage() {
         navigate('/login');
     };
 
-    // Este useEffect agora faz as duas coisas:
-    // 1. Carrega os dados do usuário do token
-    // 2. Carrega os dados do fornecedor (se estiver em modo de edição)
+    // 5. ATUALIZADO: Buscar dados da API
     useEffect(() => {
-        // Lógica do Token
         const token = localStorage.getItem('authToken');
+        
         if (token) {
             try {
                 const decodedToken = jwtDecode<TokenPayload>(token);
@@ -133,26 +126,47 @@ function FornecedoresIncluirPage() {
                 });
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
-                handleLogout(); // Desloga se o token for inválido
+                handleLogout();
             }
         } else {
-            handleLogout(); // Desloga se não houver token
+            handleLogout();
         }
 
-        // Lógica para carregar dados do formulário (modo de edição)
-        if (isEditMode && id) {
-            const fornecedoresSalvos = localStorage.getItem('fornecedores') || '[]';
-            const fornecedores: Fornecedor[] = JSON.parse(fornecedoresSalvos);
-            const fornecedorParaEditar = fornecedores.find(f => f.id === id);
-            
-            if (fornecedorParaEditar) {
-                setFormData(fornecedorParaEditar);
-            } else {
-                alert("Fornecedor não encontrado!");
-                navigate('/cadastro_fornecedor');
-            }
+        if (isEditMode && id && token) {
+            const fetchFornecedor = async () => {
+                try {
+                    // ATUALIZADO: URL da API
+                    const response = await fetch(`http://127.0.0.1:8000/api/fornecedores/${id}/`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error('Fornecedor não encontrado');
+                    }
+                    const data = await response.json();
+                    // Converte 'null' de volta para string vazia para o formulário
+                    const formattedData: FornecedorFormData = {
+                        ...data,
+                        nomeFantasia: data.nomeFantasia || '',
+                        bairro: data.bairro || '',
+                        cep: data.cep || '',
+                        telefone: data.telefone || '',
+                        inscricaoEstadual: data.inscricaoEstadual || '',
+                        email: data.email || '',
+                        tipoPessoa: data.tipoPessoa || '',
+                        tipo: data.tipo || '',
+                    };
+                    setFormData(formattedData);
+                } catch (error) {
+                    console.error("Erro ao buscar fornecedor:", error);
+                    alert("Fornecedor não encontrado!");
+                    navigate('/cadastro_fornecedor');
+                }
+            };
+            fetchFornecedor();
         }
-    }, [id, isEditMode, navigate]); // Dependências do Effect
+    }, [id, isEditMode, navigate]);
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,31 +174,57 @@ function FornecedoresIncluirPage() {
       setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = (e: React.FormEvent) => {
+    // 6. ATUALIZADO: Salvar (POST) ou Alterar (PUT) na API
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const fornecedoresSalvos = localStorage.getItem('fornecedores') || '[]';
-            const fornecedores: Fornecedor[] = JSON.parse(fornecedoresSalvos);
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            handleLogout(); 
+            return;
+        }
 
-            if (isEditMode) {
-                const index = fornecedores.findIndex(f => f.id === id);
-                if (index === -1) throw new Error("Fornecedor não encontrado");
-                
-                const fornecedorAtualizado: Fornecedor = { ...formData, id: id! };
-                fornecedores[index] = fornecedorAtualizado;
-                
-                localStorage.setItem('fornecedores', JSON.stringify(fornecedores));
-                alert("Fornecedor alterado com sucesso!");
-            } else {
-                const novoFornecedor: Fornecedor = { ...formData, id: crypto.randomUUID() };
-                fornecedores.push(novoFornecedor);
-                localStorage.setItem('fornecedores', JSON.stringify(fornecedores));
-                alert("Fornecedor salvo com sucesso!");
+        const url = isEditMode 
+            ? `http://127.0.0.1:8000/api/fornecedores/${id}/` 
+            : 'http://127.0.0.1:8000/api/fornecedores/';
+        
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        // Converte strings vazias em 'null' para o Django
+        const dataToSave = {
+            ...formData,
+            nomeFantasia: formData.nomeFantasia || null,
+            bairro: formData.bairro || null,
+            cep: formData.cep || null,
+            telefone: formData.telefone || null,
+            inscricaoEstadual: formData.inscricaoEstadual || null,
+            email: formData.email || null,
+            tipoPessoa: formData.tipoPessoa || null,
+            tipo: formData.tipo || null,
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(dataToSave)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Erro ao salvar:', errorData);
+                const errorMessages = Object.values(errorData).join('\n');
+                throw new Error(`Falha ao salvar:\n${errorMessages}`);
             }
-            navigate('/cadastro_fornecedor');
+
+            alert(isEditMode ? "Fornecedor alterado com sucesso!" : "Fornecedor salvo com sucesso!");
+            navigate('/cadastro_fornecedor'); 
+
         } catch (error) {
-            console.error("Erro ao salvar no localStorage:", error);
-            alert("Ocorreu um erro ao salvar o fornecedor.");
+            console.error("Erro ao salvar:", error);
+            alert(`Ocorreu um erro ao salvar o fornecedor: ${error}`);
         }
     };
 
@@ -196,7 +236,7 @@ function FornecedoresIncluirPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                  <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                 {/* 5. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
+                 {/* 7. ATUALIZADO */}
                  <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
@@ -223,12 +263,12 @@ function FornecedoresIncluirPage() {
                                 </ul>
                             )}
                         </li>
-                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
-                        <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
+                        <li style={styles.navItem}><Link to="/contas-a-pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        <li style={styles.navItem}><Link to="/contas-a-receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                {/* 6. ATUALIZAR BOTÃO DE LOGOUT */}
+                {/* 8. ATUALIZADO */}
                 <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
@@ -236,7 +276,7 @@ function FornecedoresIncluirPage() {
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
-                    {/* 7. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
+                    {/* 9. ATUALIZADO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
@@ -259,7 +299,7 @@ function FornecedoresIncluirPage() {
                         </div>
                         
                         <div style={styles.formGrid}>
-                            {/* ... (O resto do seu formulário não muda) ... */}
+                            {/* ... (O resto do seu formulário) ... */}
                             <div style={{...styles.formGroup, ...styles.span2}}>
                                 <label style={styles.label} htmlFor="codigo">Código<span style={styles.requiredAsterisk}>*</span></label>
                                 <input style={styles.input} type="text" name="codigo" id="codigo" value={formData.codigo} onChange={handleChange} required />
@@ -270,7 +310,7 @@ function FornecedoresIncluirPage() {
                             </div>
                             <div style={{...styles.formGroup, ...styles.span5}}>
                                 <label style={styles.label} htmlFor="nomeFantasia">Nome Fantasia</label>
-                                <input style={styles.input} type="text" name="nomeFantasia" id="nomeFantasia" value={formData.nomeFantasia} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="nomeFantasia" id="nomeFantasia" value={formData.nomeFantasia || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span5}}>
                                 <label style={styles.label} htmlFor="endereco">Endereço<span style={styles.requiredAsterisk}>*</span></label>
@@ -278,7 +318,7 @@ function FornecedoresIncluirPage() {
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="bairro">Bairro</label>
-                                <input style={styles.input} type="text" name="bairro" id="bairro" value={formData.bairro} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="bairro" id="bairro" value={formData.bairro || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span4}}>
                                 <label style={styles.label} htmlFor="cidade">Cidade<span style={styles.requiredAsterisk}>*</span></label>
@@ -286,7 +326,7 @@ function FornecedoresIncluirPage() {
                             </div>
                             <div style={{...styles.formGroup, ...styles.span2}}>
                                 <label style={styles.label} htmlFor="cep">CEP</label>
-                                <input style={styles.input} type="text" name="cep" id="cep" value={formData.cep} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="cep" id="cep" value={formData.cep || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span2}}>
                                 <label style={styles.label} htmlFor="estado">Estado<span style={styles.requiredAsterisk}>*</span></label>
@@ -298,23 +338,23 @@ function FornecedoresIncluirPage() {
                             </div>
                             <div style={{...styles.formGroup, ...styles.span2}}>
                                 <label style={styles.label} htmlFor="telefone">Telefone</label>
-                                <input style={styles.input} type="text" name="telefone" id="telefone" value={formData.telefone} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="telefone" id="telefone" value={formData.telefone || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="inscricaoEstadual">Inscrição Estadual</label>
-                                <input style={styles.input} type="text" name="inscricaoEstadual" id="inscricaoEstadual" value={formData.inscricaoEstadual} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="inscricaoEstadual" id="inscricaoEstadual" value={formData.inscricaoEstadual || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span6}}>
                                 <label style={styles.label} htmlFor="email">E-mail</label>
-                                <input style={styles.input} type="email" name="email" id="email" value={formData.email} onChange={handleChange} />
+                                <input style={styles.input} type="email" name="email" id="email" value={formData.email || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="tipoPessoa">Física/Jurídica</label>
-                                <input style={styles.input} type="text" name="tipoPessoa" id="tipoPessoa" value={formData.tipoPessoa} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="tipoPessoa" id="tipoPessoa" value={formData.tipoPessoa || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="tipo">Tipo</label>
-                                <input style={styles.input} type="text" name="tipo" id="tipo" value={formData.tipo} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="tipo" id="tipo" value={formData.tipo || ''} onChange={handleChange} />
                             </div>
                         </div>
                     </form>

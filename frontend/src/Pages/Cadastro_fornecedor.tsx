@@ -12,14 +12,14 @@ interface TokenPayload {
     email: string;
 }
 
-// 3. DEFINIÇÃO DO TIPO FORNECEDOR (COM ID)
+// 3. DEFINIÇÃO DO TIPO FORNECEDOR (id: number)
 type Fornecedor = {
-    id: string; // ID único
+    id: number; // ID do banco de dados
     codigo: string;
     razaoSocial: string;
     cpfCnpj: string;
-    telefone: string;
-    inscricaoEstadual: string;
+    telefone: string | null;
+    inscricaoEstadual: string | null;
 };
 
 // --- Ícones em SVG ---
@@ -42,87 +42,22 @@ const ChevronDownIcon = () => (
 
 // --- Estilos do Componente ---
 const styles: { [key: string]: StyleObject } = {
-    pageContainer: {
-        display: 'flex',
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: '#f0f2f5',
-        fontFamily: `'Segoe UI', sans-serif`,
-        color: '#333',
-    },
-    sidebar: {
-        width: '280px',
-        backgroundColor: '#ffffff',
-        padding: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        borderRight: '1px solid #e0e0e0',
-    },
-    sidebarHeader: {
-        marginBottom: '40px',
-    },
-    logo: {
-        fontSize: '1.8rem',
-        fontWeight: 'bold',
-        color: '#0d6efd',
-    },
-    welcomeMessage: {
-        marginTop: '40px',
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-    },
-    nav: {
-        flex: 1,
-        marginTop: '20px',
-    },
-    navList: {
-        listStyle: 'none',
-        padding: 0,
-        margin: 0,
-    },
-    navItem: {
-        margin: '5px 0',
-        borderRadius: '8px',
-        fontWeight: 500,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    navLink: {
-        display: 'block',
-        padding: '15px 20px',
-        textDecoration: 'none',
-        color: 'inherit',
-        borderRadius: '8px',
-    },
-    navItemActive: {
-        backgroundColor: '#1a237e',
-        color: 'white',
-    },
-    subNavList: {
-        listStyle: 'none',
-        padding: '5px 0 5px 25px',
-        margin: '5px 0 0 0',
-    },
-    subNavItem: {
-        margin: '2px 0',
-        borderRadius: '6px',
-        fontWeight: 400,
-        fontSize: '0.95rem',
-    },
-    subNavLink: {
-        display: 'block',
-        padding: '10px 15px',
-        textDecoration: 'none',
-        color: 'inherit',
-        borderRadius: '6px',
-    },
-    subNavItemActive: {
-        fontWeight: 'bold',
-        color: '#0d6efd',
-        backgroundColor: '#e7f5ff'
-    },
-    // 4. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
+    // ... (Seus estilos completos aqui) ...
+    pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333', },
+    sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0', },
+    sidebarHeader: { marginBottom: '40px', },
+    logo: { fontSize: '1.8rem', fontWeight: 'bold', color: '#0d6efd', },
+    welcomeMessage: { marginTop: '40px', fontSize: '1.5rem', fontWeight: 'bold', },
+    nav: { flex: 1, marginTop: '20px', },
+    navList: { listStyle: 'none', padding: 0, margin: 0, },
+    navItem: { margin: '5px 0', borderRadius: '8px', fontWeight: 500, display: 'flex', justifyContent: 'space-between', alignItems: 'center', },
+    navLink: { display: 'block', padding: '15px 20px', textDecoration: 'none', color: 'inherit', borderRadius: '8px', },
+    navItemActive: { backgroundColor: '#1a237e', color: 'white', },
+    subNavList: { listStyle: 'none', padding: '5px 0 5px 25px', margin: '5px 0 0 0', },
+    subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem', },
+    subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px', },
+    subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
+    // 4. ESTILO DO BOTÃO DE LOGOUT
     logoutButton: { 
         display: 'flex', 
         alignItems: 'center', 
@@ -138,122 +73,35 @@ const styles: { [key: string]: StyleObject } = {
         fontWeight: 500, 
         borderRadius: '8px',
     },
-    mainContent: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '20px 40px',
-        overflowY: 'auto',
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        marginBottom: '30px',
-    },
-    headerItem: {
-        display: 'flex',
-        alignItems: 'center',
-        marginLeft: '20px',
-        padding: '8px 12px',
-        borderRadius: '8px',
-        backgroundColor: '#e9ecef',
-        fontSize: '0.9rem',
-    },
-    content: {
-        backgroundColor: '#ffffff',
-        padding: '30px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
-        flex: 1,
-    },
-    contentHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px',
-        paddingBottom: '20px',
-        borderBottom: '1px solid #e9ecef',
-    },
-    contentTitle: {
-        fontSize: '2rem',
-        fontWeight: 'bold',
-    },
-    actions: {
-        display: 'flex',
-        gap: '10px',
-    },
-    headerActionButton: {
-        padding: '10px 20px',
-        border: '1px solid #ced4da',
-        borderRadius: '8px',
-        background: '#fff',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontWeight: 500,
-    },
-    tableActions: {
-        marginBottom: '20px',
-    },
-    tableActionButton: {
-        padding: '10px 25px',
-        border: 'none',
-        borderRadius: '8px',
-        color: 'white',
-        fontWeight: 'bold',
-        cursor: 'pointer',
-        marginRight: '10px',
-    },
-    buttonDisabled: { 
-        backgroundColor: '#6c757d', 
-        cursor: 'not-allowed' 
-    },
-    table: {
-        width: '100%',
-        borderCollapse: 'collapse',
-        marginTop: '20px',
-    },
-    th: {
-        padding: '12px 15px',
-        textAlign: 'left',
-        borderBottom: '2px solid #dee2e6',
-        color: '#495057',
-        fontWeight: 600,
-        fontSize: '0.9rem',
-    },
-    td: {
-        padding: '12px 15px',
-        borderBottom: '1px solid #e9ecef',
-    },
-    trHover: { 
-        cursor: 'pointer' 
-    },
-    trSelected: { 
-        backgroundColor: '#e7f5ff' 
-    },
-    checkbox: {
-        width: '18px',
-        height: '18px',
-    },
-    noDataText: {
-        textAlign: 'center',
-        padding: '20px',
-        color: '#6c757d',
-        fontStyle: 'italic'
-    }
+    mainContent: { flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 40px', overflowY: 'auto', },
+    header: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px', },
+    headerItem: { display: 'flex', alignItems: 'center', marginLeft: '20px', padding: '8px 12px', borderRadius: '8px', backgroundColor: '#e9ecef', fontSize: '0.9rem', },
+    content: { backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', flex: 1, },
+    contentHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #e9ecef', },
+    contentTitle: { fontSize: '2rem', fontWeight: 'bold', },
+    actions: { display: 'flex', gap: '10px', },
+    headerActionButton: { padding: '10px 20px', border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, },
+    tableActions: { marginBottom: '20px', },
+    tableActionButton: { padding: '10px 25px', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', marginRight: '10px', },
+    buttonDisabled: { backgroundColor: '#6c757d', cursor: 'not-allowed' },
+    table: { width: '100%', borderCollapse: 'collapse', marginTop: '20px', },
+    th: { padding: '12px 15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', color: '#495057', fontWeight: 600, fontSize: '0.9rem', },
+    td: { padding: '12px 15px', borderBottom: '1px solid #e9ecef', },
+    trHover: { cursor: 'pointer' },
+    trSelected: { backgroundColor: '#e7f5ff' },
+    checkbox: { width: '18px', height: '18px', },
+    noDataText: { textAlign: 'center', padding: '20px', color: '#6c757d', fontStyle: 'italic' }
 };
 
 function FornecedoresPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(true);
-    const [selectedRow, setSelectedRow] = useState<string | null>(null);
+    const [selectedRow, setSelectedRow] = useState<number | null>(null); // ID do DB é number
     const navigate = useNavigate();
     
     const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
     const tableHeaders = ['Código', 'Razão Social', 'CPF/CNPJ', 'Telefone', 'Inscrição Estadual'];
-
-    // 5. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
+    
+    // 5. LÓGICA DE USUÁRIO E LOGOUT
     const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
 
     const handleLogout = () => {
@@ -262,8 +110,8 @@ function FornecedoresPage() {
         navigate('/login');
     };
 
+    // 6. ATUALIZADO: Buscar dados da API em vez do localStorage
     useEffect(() => {
-        // Lógica do Token
         const token = localStorage.getItem('authToken');
         if (token) {
             try {
@@ -280,13 +128,32 @@ function FornecedoresPage() {
             handleLogout();
         }
 
-        // Lógica de carregar fornecedores do localStorage
-        const fornecedoresSalvos = localStorage.getItem('fornecedores');
-        if (fornecedoresSalvos) {
-            setFornecedores(JSON.parse(fornecedoresSalvos));
-        }
-    }, []); // Array vazio, roda só uma vez
-    // FIM DA LÓGICA DO USUÁRIO
+        // Função para buscar fornecedores da API
+        const fetchFornecedores = async () => {
+            if (!token) return; 
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/fornecedores/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.status === 401) { 
+                    handleLogout();
+                    return;
+                }
+                
+                const data: Fornecedor[] = await response.json();
+                setFornecedores(data);
+                
+            } catch (error) {
+                console.error("Erro ao buscar fornecedores:", error);
+            }
+        };
+
+        fetchFornecedores();
+    }, [navigate]); // Dependência
 
 
     const handleIncluirClick = () => {
@@ -301,16 +168,36 @@ function FornecedoresPage() {
         }
     };
 
-    const handleExcluirClick = () => {
+    // 7. ATUALIZADO: Excluir da API
+    const handleExcluirClick = async () => {
         if (!selectedRow) {
             alert("Por favor, selecione um fornecedor para excluir.");
             return;
         }
+
         if (window.confirm("Tem certeza que deseja excluir este fornecedor?")) {
-            const novosFornecedores = fornecedores.filter(f => f.id !== selectedRow);
-            setFornecedores(novosFornecedores);
-            localStorage.setItem('fornecedores', JSON.stringify(novosFornecedores));
-            setSelectedRow(null);
+            const token = localStorage.getItem('authToken');
+            if (!token) { handleLogout(); return; }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/fornecedores/${selectedRow}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao excluir.');
+                }
+                
+                setFornecedores(fornecedores.filter(f => f.id !== selectedRow));
+                setSelectedRow(null); 
+                
+            } catch (error) {
+                console.error("Erro ao excluir fornecedor:", error);
+                alert("Erro ao excluir fornecedor.");
+            }
         }
     };
 
@@ -318,12 +205,11 @@ function FornecedoresPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                 <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                {/* 6. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
+                {/* 8. ATUALIZADO */}
                 <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
                         <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Dashboard</Link></li>
-                        
                         <li>
                             <div 
                                 style={{...styles.navItem, ...styles.navItemActive, padding: '15px 20px', cursor: 'pointer'}}
@@ -346,13 +232,12 @@ function FornecedoresPage() {
                                 </ul>
                             )}
                         </li>
-
                         <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
                         <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                {/* 7. ATUALIZAR BOTÃO DE LOGOUT */}
+                {/* 9. ATUALIZADO */}
                 <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
@@ -360,7 +245,7 @@ function FornecedoresPage() {
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
-                    {/* 8. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
+                    {/* 10. ATUALIZADO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
