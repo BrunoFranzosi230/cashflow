@@ -1,9 +1,10 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-# 1. IMPORTAR O SERIALIZER DE TOKEN PADRÃO
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+# 1. IMPORTE O NOVO MODELO
+from .models import Cliente
 
-# Serializer para criar usuários (JÁ EXISTE)
+# (Serializer de User - Você já tem)
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -18,17 +19,25 @@ class UserSerializer(serializers.ModelSerializer):
         )
         return user
 
-# --- 2. ADICIONE ESTA NOVA CLASSE ---
-# Serializer customizado para o Token
+# (Serializer de Token - Você já tem)
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
-        # Pega o token padrão
         token = super().get_token(user)
-
-        # Adiciona nossos dados customizados ao payload do token
         token['username'] = user.username
         token['email'] = user.email
-        # (Você pode adicionar mais dados aqui, se quiser)
-
         return token
+
+
+# --- 2. ADICIONE ESTE NOVO SERIALIZER ---
+class ClienteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cliente
+        # Lista todos os campos que a API vai usar
+        fields = [
+            'id', 'codigo', 'razaoSocial', 'nomeFantasia', 'endereco', 
+            'bairro', 'cidade', 'cep', 'estado', 'cpfCnpj', 'telefone', 
+            'inscricaoEstadual', 'email', 'tipoPessoa', 'tipo', 'user'
+        ]
+        # Torna o 'user' apenas leitura. O backend vai preencher automaticamente.
+        read_only_fields = ('user',)

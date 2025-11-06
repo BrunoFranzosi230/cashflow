@@ -1,38 +1,32 @@
 import React, { useState, useEffect } from 'react';
-// 1. IMPORTAR 'useParams' E 'jwtDecode'
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 // --- TIPAGEM ---
 type StyleObject = React.CSSProperties;
 
-// 2. ADICIONAR INTERFACE DO TOKEN
 interface TokenPayload {
     username: string;
     email: string;
 }
 
 // Tipagem para os dados do formulário
+// (Campos opcionais são 'string | null' para bater com o Django)
 type ClienteFormData = {
   codigo: string;
   razaoSocial: string;
-  nomeFantasia: string;
+  nomeFantasia: string | null;
   endereco: string;
-  bairro: string;
+  bairro: string | null;
   cidade: string;
-  cep: string;
+  cep: string | null;
   estado: string;
   cpfCnpj: string;
-  telefone: string;
-  inscricaoEstadual: string;
-  email: string;
-  tipoPessoa: string;
-  tipo: string;
-};
-
-// Tipagem do Cliente (com ID)
-type Cliente = ClienteFormData & {
-  id: string;
+  telefone: string | null;
+  inscricaoEstadual: string | null;
+  email: string | null;
+  tipoPessoa: string | null;
+  tipo: string | null;
 };
 
 // --- ÍCONES SVG ---
@@ -43,7 +37,7 @@ const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16"
 
 // --- ESTILOS DO COMPONENTE ---
 const styles: { [key: string]: StyleObject } = {
-    // ... (Seus estilos) ...
+    // ... (Seus estilos completos aqui) ...
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
     mainContent: { flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 40px', overflowY: 'auto' },
@@ -59,24 +53,7 @@ const styles: { [key: string]: StyleObject } = {
     subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem' },
     subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px' },
     subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
-    
-    // --- 3. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO ---
-    logoutButton: { 
-        display: 'flex', 
-        alignItems: 'center', 
-        background: 'none', 
-        border: 'none', 
-        cursor: 'pointer', 
-        padding: '10px', 
-        width: '100%', 
-        fontFamily: `'Segoe UI', sans-serif`, 
-        fontSize: '1rem', 
-        color: '#333', 
-        gap: '8px', 
-        fontWeight: 500, 
-        borderRadius: '8px',
-    },
-    
+    logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px', width: '100%', fontFamily: `'Segoe UI', sans-serif`, fontSize: '1rem', color: '#333', gap: '8px', fontWeight: 500, borderRadius: '8px', },
     header: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px' },
     headerItem: { display: 'flex', alignItems: 'center', marginLeft: '20px', padding: '8px 12px', borderRadius: '8px', backgroundColor: '#e9ecef', fontSize: '0.9rem' },
     content: { backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', flex: 1 },
@@ -103,6 +80,7 @@ function ClientesIncluirPage() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
 
+    // Estado do formulário
     const [formData, setFormData] = useState<ClienteFormData>({
       codigo: '', razaoSocial: '', nomeFantasia: '',
       endereco: '', bairro: '', cidade: '',
@@ -111,7 +89,7 @@ function ClientesIncluirPage() {
       email: '', tipoPessoa: '', tipo: '',
     });
 
-    // --- 4. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT ---
+    // Estado do usuário logado
     const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
 
     const handleLogout = () => {
@@ -120,12 +98,10 @@ function ClientesIncluirPage() {
         navigate('/login');
     };
 
-    // Este useEffect agora faz as duas coisas:
-    // 1. Carrega os dados do usuário do token
-    // 2. Carrega os dados do cliente (se estiver em modo de edição)
+    // ATUALIZADO: Buscar dados da API
     useEffect(() => {
-        // Lógica do Token
         const token = localStorage.getItem('authToken');
+        
         if (token) {
             try {
                 const decodedToken = jwtDecode<TokenPayload>(token);
@@ -135,26 +111,47 @@ function ClientesIncluirPage() {
                 });
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
-                handleLogout(); // Desloga se o token for inválido
+                handleLogout();
             }
         } else {
-            handleLogout(); // Desloga se não houver token
+            handleLogout();
         }
 
-        // Lógica para carregar dados do formulário (modo de edição)
-        if (isEditMode && id) {
-            const clientesSalvos = localStorage.getItem('clientes') || '[]';
-            const clientes: Cliente[] = JSON.parse(clientesSalvos);
-            const clienteParaEditar = clientes.find(c => c.id === id);
-            
-            if (clienteParaEditar) {
-                setFormData(clienteParaEditar);
-            } else {
-                alert("Cliente não encontrado!");
-                navigate('/cadastro_cliente');
-            }
+        // Se for modo de edição, buscar dados do cliente específico na API
+        if (isEditMode && id && token) {
+            const fetchCliente = async () => {
+                try {
+                    const response = await fetch(`http://127.0.0.1:8000/api/clientes/${id}/`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error('Cliente não encontrado');
+                    }
+                    // O Django envia 'null' para campos vazios, precisamos tratar isso
+                    const data = await response.json();
+                    const formattedData: ClienteFormData = {
+                        ...data,
+                        nomeFantasia: data.nomeFantasia || '',
+                        bairro: data.bairro || '',
+                        cep: data.cep || '',
+                        telefone: data.telefone || '',
+                        inscricaoEstadual: data.inscricaoEstadual || '',
+                        email: data.email || '',
+                        tipoPessoa: data.tipoPessoa || '',
+                        tipo: data.tipo || '',
+                    };
+                    setFormData(formattedData); // Preenche o formulário
+                } catch (error) {
+                    console.error("Erro ao buscar cliente:", error);
+                    alert("Cliente não encontrado!");
+                    navigate('/cadastro_cliente');
+                }
+            };
+            fetchCliente();
         }
-    }, [id, isEditMode, navigate]); // Dependências do Effect
+    }, [id, isEditMode, navigate]);
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,29 +159,58 @@ function ClientesIncluirPage() {
       setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = (e: React.FormEvent) => {
+    // ATUALIZADO: Salvar (POST) ou Alterar (PUT) na API
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const clientesSalvos = localStorage.getItem('clientes') || '[]';
-            const clientes: Cliente[] = JSON.parse(clientesSalvos);
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            handleLogout(); 
+            return;
+        }
 
-            if (isEditMode) {
-                const index = clientes.findIndex(c => c.id === id);
-                if (index === -1) throw new Error("Cliente não encontrado");
-                const clienteAtualizado: Cliente = { ...formData, id: id! };
-                clientes[index] = clienteAtualizado;
-                localStorage.setItem('clientes', JSON.stringify(clientes));
-                alert("Cliente alterado com sucesso!");
-            } else {
-                const novoCliente: Cliente = { ...formData, id: crypto.randomUUID() };
-                clientes.push(novoCliente);
-                localStorage.setItem('clientes', JSON.stringify(clientes));
-                alert("Cliente salvo com sucesso!");
+        const url = isEditMode 
+            ? `http://127.0.0.1:8000/api/clientes/${id}/` 
+            : 'http://127.0.0.1:8000/api/clientes/';
+        
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        // Trata campos vazios para enviar 'null' para o Django (opcional, mas bom)
+        const dataToSave = {
+            ...formData,
+            nomeFantasia: formData.nomeFantasia || null,
+            bairro: formData.bairro || null,
+            cep: formData.cep || null,
+            telefone: formData.telefone || null,
+            inscricaoEstadual: formData.inscricaoEstadual || null,
+            email: formData.email || null,
+            tipoPessoa: formData.tipoPessoa || null,
+            tipo: formData.tipo || null,
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(dataToSave)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Erro ao salvar:', errorData);
+                // Tenta mostrar um erro mais amigável
+                const errorMessages = Object.values(errorData).join('\n');
+                throw new Error(`Falha ao salvar:\n${errorMessages}`);
             }
-            navigate('/cadastro_cliente');
+
+            alert(isEditMode ? "Cliente alterado com sucesso!" : "Cliente salvo com sucesso!");
+            navigate('/cadastro_cliente'); // Volta para a lista
+
         } catch (error) {
-            console.error("Erro ao salvar no localStorage:", error);
-            alert("Ocorreu um erro ao salvar o cliente.");
+            console.error("Erro ao salvar:", error);
+            alert(`Ocorreu um erro ao salvar o cliente: ${error}`);
         }
     };
 
@@ -196,7 +222,6 @@ function ClientesIncluirPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                  <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                 {/* 5. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
                  <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
@@ -223,12 +248,11 @@ function ClientesIncluirPage() {
                                 </ul>
                             )}
                         </li>
-                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
-                        <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
+                        <li style={styles.navItem}><Link to="/contas-a-pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        <li style={styles.navItem}><Link to="/contas-a-receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                {/* 6. ATUALIZAR BOTÃO DE LOGOUT */}
                 <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
@@ -236,7 +260,6 @@ function ClientesIncluirPage() {
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
-                    {/* 7. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
@@ -259,7 +282,7 @@ function ClientesIncluirPage() {
                         </div>
                         
                         <div style={styles.formGrid}>
-                            {/* ... (O resto do seu formulário não muda) ... */}
+                            {/* Linha 1 */}
                             <div style={{...styles.formGroup, ...styles.span2}}>
                                 <label style={styles.label} htmlFor="codigo">Código<span style={styles.requiredAsterisk}>*</span></label>
                                 <input style={styles.input} type="text" name="codigo" id="codigo" value={formData.codigo} onChange={handleChange} required />
@@ -270,23 +293,27 @@ function ClientesIncluirPage() {
                             </div>
                             <div style={{...styles.formGroup, ...styles.span5}}>
                                 <label style={styles.label} htmlFor="nomeFantasia">Nome Fantasia</label>
-                                <input style={styles.input} type="text" name="nomeFantasia" id="nomeFantasia" value={formData.nomeFantasia} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="nomeFantasia" id="nomeFantasia" value={formData.nomeFantasia || ''} onChange={handleChange} />
                             </div>
+
+                            {/* Linha 2 */}
                             <div style={{...styles.formGroup, ...styles.span5}}>
                                 <label style={styles.label} htmlFor="endereco">Endereço<span style={styles.requiredAsterisk}>*</span></label>
                                 <input style={styles.input} type="text" name="endereco" id="endereco" value={formData.endereco} onChange={handleChange} required />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="bairro">Bairro</label>
-                                <input style={styles.input} type="text" name="bairro" id="bairro" value={formData.bairro} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="bairro" id="bairro" value={formData.bairro || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span4}}>
                                 <label style={styles.label} htmlFor="cidade">Cidade<span style={styles.requiredAsterisk}>*</span></label>
                                 <input style={styles.input} type="text" name="cidade" id="cidade" value={formData.cidade} onChange={handleChange} required />
                             </div>
+
+                            {/* Linha 3 */}
                             <div style={{...styles.formGroup, ...styles.span2}}>
                                 <label style={styles.label} htmlFor="cep">CEP</label>
-                                <input style={styles.input} type="text" name="cep" id="cep" value={formData.cep} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="cep" id="cep" value={formData.cep || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span2}}>
                                 <label style={styles.label} htmlFor="estado">Estado<span style={styles.requiredAsterisk}>*</span></label>
@@ -298,23 +325,25 @@ function ClientesIncluirPage() {
                             </div>
                             <div style={{...styles.formGroup, ...styles.span2}}>
                                 <label style={styles.label} htmlFor="telefone">Telefone</label>
-                                <input style={styles.input} type="text" name="telefone" id="telefone" value={formData.telefone} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="telefone" id="telefone" value={formData.telefone || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="inscricaoEstadual">Inscrição Estadual</label>
-                                <input style={styles.input} type="text" name="inscricaoEstadual" id="inscricaoEstadual" value={formData.inscricaoEstadual} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="inscricaoEstadual" id="inscricaoEstadual" value={formData.inscricaoEstadual || ''} onChange={handleChange} />
                             </div>
+
+                            {/* Linha 4 */}
                             <div style={{...styles.formGroup, ...styles.span6}}>
                                 <label style={styles.label} htmlFor="email">E-mail</label>
-                                <input style={styles.input} type="email" name="email" id="email" value={formData.email} onChange={handleChange} />
+                                <input style={styles.input} type="email" name="email" id="email" value={formData.email || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="tipoPessoa">Física/Jurídica</label>
-                                <input style={styles.input} type="text" name="tipoPessoa" id="tipoPessoa" value={formData.tipoPessoa} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="tipoPessoa" id="tipoPessoa" value={formData.tipoPessoa || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="tipo">Tipo</label>
-                                <input style={styles.input} type="text" name="tipo" id="tipo" value={formData.tipo} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="tipo" id="tipo" value={formData.tipo || ''} onChange={handleChange} />
                             </div>
                         </div>
                     </form>

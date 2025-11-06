@@ -1,48 +1,35 @@
 import React, { useState, useEffect } from 'react';
-// 1. Importe 'useNavigate' e 'jwtDecode'
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
-// Tipagem para os objetos de estilo
+// --- TIPAGEM ---
 type StyleObject = React.CSSProperties;
 
-// 2. Interface para o Token
 interface TokenPayload {
     username: string;
     email: string;
 }
 
-// 3. DEFINIÇÃO DO TIPO CLIENTE (COM ID)
+// ATENÇÃO: O tipo Cliente agora precisa ter 'id' como number (padrão do Django)
+// e os campos podem ser nulos, como no modelo.
 type Cliente = {
-    id: string; // ID único
+    id: number; // ID do banco de dados (é number)
     codigo: string;
     razaoSocial: string;
     cpfCnpj: string;
-    telefone: string;
-    inscricaoEstadual: string;
+    telefone: string | null;
+    inscricaoEstadual: string | null;
 };
 
-// --- Ícones em SVG ---
-const BellIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-);
-const UserIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-);
-const FilterIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-);
-const ArrowLeftIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-);
-const ChevronDownIcon = () => (
-     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-);
+// --- Ícones (mesmos de antes) ---
+const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>;
+const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
+const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>;
+const ArrowLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
+const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
 
-
-// --- Estilos do Componente ---
+// --- Estilos (mesmos de antes) ---
 const styles: { [key: string]: StyleObject } = {
-    // ... (Seus estilos completos aqui) ...
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333', },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0', },
     sidebarHeader: { marginBottom: '40px', },
@@ -57,7 +44,6 @@ const styles: { [key: string]: StyleObject } = {
     subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem', },
     subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px', },
     subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
-    // 4. ESTILO DO BOTÃO DE LOGOUT (copiado do Dashboard)
     logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px', width: '100%', fontFamily: `'Segoe UI', sans-serif`, fontSize: '1rem', color: '#333', gap: '8px', fontWeight: 500, borderRadius: '8px', },
     mainContent: { flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 40px', overflowY: 'auto', },
     header: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px', },
@@ -81,17 +67,23 @@ const styles: { [key: string]: StyleObject } = {
 
 function ClientesPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(true);
-    const [selectedRow, setSelectedRow] = useState<string | null>(null);
+    const [selectedRow, setSelectedRow] = useState<number | null>(null); // Salva o ID (number)
     const navigate = useNavigate();
     const [clientes, setClientes] = useState<Cliente[]>([]);
     const tableHeaders = ['Código', 'Razão Social', 'CPF/CNPJ', 'Telefone', 'Inscrição Estadual'];
-
-    // 5. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
     const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
 
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        navigate('/login');
+    };
+
+    // ATUALIZADO: Buscar dados da API em vez do localStorage
     useEffect(() => {
-        // Lógica do Token
         const token = localStorage.getItem('authToken');
+        
+        // 1. Decodificar token (igual em todas as páginas)
         if (token) {
             try {
                 const decodedToken = jwtDecode<TokenPayload>(token);
@@ -107,19 +99,32 @@ function ClientesPage() {
             handleLogout();
         }
 
-        // Lógica de carregar clientes do localStorage
-        const clientesSalvos = localStorage.getItem('clientes');
-        if (clientesSalvos) {
-            setClientes(JSON.parse(clientesSalvos));
-        }
-    }, []); // Array vazio, roda só uma vez
+        // 2. Função para buscar clientes da API
+        const fetchClientes = async () => {
+            if (!token) return; // Não faz nada se não houver token
 
-    const handleLogout = () => {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('refreshToken');
-        navigate('/login');
-    };
-    // FIM DA LÓGICA DO USUÁRIO
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/clientes/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.status === 401) { // Token expirado ou inválido
+                    handleLogout();
+                    return;
+                }
+                
+                const data: Cliente[] = await response.json();
+                setClientes(data);
+                
+            } catch (error) {
+                console.error("Erro ao buscar clientes:", error);
+            }
+        };
+
+        fetchClientes();
+    }, [navigate]); // Adicionado navigate como dependência
 
     const handleIncluirClick = () => {
         navigate('/cadastro_cliente/novo');
@@ -133,16 +138,37 @@ function ClientesPage() {
         }
     };
 
-    const handleExcluirClick = () => {
+    // ATUALIZADO: Excluir da API
+    const handleExcluirClick = async () => {
         if (!selectedRow) {
             alert("Por favor, selecione um cliente para excluir.");
             return;
         }
+
         if (window.confirm("Tem certeza que deseja excluir este cliente?")) {
-            const novosClientes = clientes.filter(cliente => cliente.id !== selectedRow);
-            setClientes(novosClientes);
-            localStorage.setItem('clientes', JSON.stringify(novosClientes));
-            setSelectedRow(null);
+            const token = localStorage.getItem('authToken');
+            if (!token) { handleLogout(); return; }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/clientes/${selectedRow}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao excluir.');
+                }
+                
+                // Remove o cliente da lista local
+                setClientes(clientes.filter(cliente => cliente.id !== selectedRow));
+                setSelectedRow(null); // Limpa a seleção
+                
+            } catch (error) {
+                console.error("Erro ao excluir cliente:", error);
+                alert("Erro ao excluir cliente.");
+            }
         }
     };
 
@@ -150,7 +176,6 @@ function ClientesPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                 <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                {/* 6. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
                 <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
@@ -182,7 +207,6 @@ function ClientesPage() {
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                {/* 7. ATUALIZAR BOTÃO DE LOGOUT */}
                 <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
@@ -190,7 +214,6 @@ function ClientesPage() {
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
-                    {/* 8. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
