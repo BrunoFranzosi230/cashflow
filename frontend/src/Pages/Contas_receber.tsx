@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-// 1. Importar useNavigate
+// 1. Importar useNavigate e jwtDecode
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 // --- TYPE DEFINITIONS ---
 type StyleObject = React.CSSProperties;
 
-// 2. Tipo da Conta ATUALIZADO
+// 2. Interface para o Token (ADICIONADO)
+interface TokenPayload {
+    username: string;
+    email: string;
+}
+
+// 3. Tipo da Conta ATUALIZADO
 type Conta = {
   id: string; // ID do localStorage
   status: 'Aberto' | 'Recebido' | 'Pendente'; // Status correto
@@ -27,6 +34,7 @@ const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16"
 
 // --- STYLES (CSS-in-JS) ---
 const styles: { [key: string]: StyleObject } = {
+    // ... (Seus estilos completos aqui) ...
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
     sidebarHeader: { marginBottom: '40px' },
@@ -57,13 +65,26 @@ const styles: { [key: string]: StyleObject } = {
     trHover: { cursor: 'pointer' },
     trSelected: { backgroundColor: '#e7f5ff' },
     checkbox: { width: '18px', height: '18px' },
-    statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white', cursor: 'pointer' }, // Adicionado cursor: pointer
-    logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px' },
+    statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white', cursor: 'pointer' },
+    // 4. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
+    logoutButton: { 
+        display: 'flex', 
+        alignItems: 'center', 
+        background: 'none', 
+        border: 'none', 
+        cursor: 'pointer', 
+        padding: '10px', 
+        width: '100%', 
+        fontFamily: `'Segoe UI', sans-serif`, 
+        fontSize: '1rem', 
+        color: '#333', 
+        gap: '8px', 
+        fontWeight: 500, 
+        borderRadius: '8px',
+    },
     noDataText: { textAlign: 'center', padding: '20px', color: '#6c757d', fontStyle: 'italic' },
-
-    // 3. NOVOS ESTILOS PARA O DROPDOWN DE STATUS
     statusContainer: {
-        position: 'relative', // Essencial para o dropdown
+        position: 'relative', 
         display: 'inline-block',
     },
     statusDropdown: {
@@ -94,48 +115,67 @@ function ContasAReceberPage() {
     const navigate = useNavigate();
     const storageKey = 'contas_a_receber'; 
 
-    // 4. NOVO ESTADO PARA CONTROLAR O DROPDOWN
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
+    // 5. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
+    const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
+
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        navigate('/login');
+    };
+
     useEffect(() => {
+        // Lógica do Token
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const decodedToken = jwtDecode<TokenPayload>(token);
+                setUser({
+                    username: decodedToken.username,
+                    email: decodedToken.email || 'Nenhum e-mail'
+                });
+            } catch (error) {
+                console.error("Erro ao decodificar o token:", error);
+                handleLogout();
+            }
+        } else {
+            handleLogout();
+        }
+
+        // Lógica de carregar contas do localStorage
         const dadosSalvos = localStorage.getItem(storageKey);
         if (dadosSalvos) {
             setContas(JSON.parse(dadosSalvos));
         }
-    }, []);
+    }, []); // Array vazio, roda só uma vez
+    // FIM DA LÓGICA DO USUÁRIO
 
-    // 5. ESTILOS DE STATUS ATUALIZADOS (Incluindo Amarelo)
     const getStatusStyle = (status: Conta['status']): React.CSSProperties => {
-        if (status === 'Aberto') return { ...styles.statusBadge, backgroundColor: '#0d6efd' }; // Azul
-        if (status === 'Recebido') return { ...styles.statusBadge, backgroundColor: '#198754' }; // Verde
+        if (status === 'Aberto') return { ...styles.statusBadge, backgroundColor: '#0d6efd' }; // Blue
+        if (status === 'Recebido') return { ...styles.statusBadge, backgroundColor: '#198754' }; // Green
         if (status === 'Pendente') return { ...styles.statusBadge, backgroundColor: '#ffc107', color: '#333' }; // Amarelo
         return styles.statusBadge;
     };
 
-    // 6. FUNÇÃO PARA ABRIR/FECHAR O DROPDOWN
     const handleDropdownToggle = (e: React.MouseEvent, id: string) => {
-        e.stopPropagation(); // Impede que o clique selecione a linha
+        e.stopPropagation();
         setOpenDropdownId(prevId => (prevId === id ? null : id));
     };
 
-    // 7. FUNÇÃO PARA ATUALIZAR O STATUS (vinda do dropdown)
     const handleStatusUpdate = (e: React.MouseEvent, clickedId: string, newStatus: Conta['status']) => {
-        e.stopPropagation(); // Impede outros cliques
-
+        e.stopPropagation();
         const contasSalvas = localStorage.getItem(storageKey) || '[]';
         const contasAtual: Conta[] = JSON.parse(contasSalvas);
-
         const index = contasAtual.findIndex(c => c.id === clickedId);
         if (index === -1) return; 
-
         contasAtual[index].status = newStatus;
-
         localStorage.setItem(storageKey, JSON.stringify(contasAtual));
-        setContas(contasAtual); // Atualiza o estado
-        setOpenDropdownId(null); // Fecha o dropdown
+        setContas(contasAtual); 
+        setOpenDropdownId(null);
     };
 
-    // 8. Funções de Ação (sem mudança na lógica, apenas no nome 'navigate')
     const handleIncluirClick = () => {
         navigate('/contas_a_receber/novo');
     };
@@ -165,7 +205,8 @@ function ContasAReceberPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                 <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> Usuário!</h2>
+                {/* 6. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
+                <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
                         <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Dashboard</Link></li>
@@ -187,18 +228,20 @@ function ContasAReceberPage() {
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                <button style={styles.logoutButton}><ArrowLeftIcon /></button>
+                {/* 7. ATUALIZAR BOTÃO DE LOGOUT */}
+                <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
             <main style={styles.mainContent}>
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
+                    {/* 8. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
-                            <strong>Usuário</strong><br/>
-                            <small>usuario@email.com</small>
+                            <strong>{user.username}</strong><br/>
+                            <small>{user.email}</small>
                         </div>
                     </div>
                 </header>
@@ -239,7 +282,6 @@ function ContasAReceberPage() {
                                         <tr key={conta.id} onClick={() => setSelectedRow(isSelected ? null : conta.id)} style={isSelected ? {...styles.trHover, ...styles.trSelected} : styles.trHover}>
                                             <td style={styles.td}><input type="radio" style={styles.checkbox} checked={isSelected} readOnly /></td>
                                             
-                                            {/* 9. CÉLULA DE STATUS ATUALIZADA */}
                                             <td style={styles.td}>
                                                 <div style={styles.statusContainer}>
                                                     <span 

@@ -1,65 +1,48 @@
+# A 'version' é obsoleta, pode remover
 version: '3.8'
 
 services:
-  backend:
+  # O serviço 'db' local foi removido porque agora usamos o Supabase
+
+  redis:
+    image: "redis:7-alpine"
+    ports:
+      - "6379:6379"
+
+  backend: # (Ou 'cashflow-backend', o nome do seu serviço)
     build: ./backend
-    container_name: cashflow-backend
     command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - ./backend:/app
     ports:
       - "8000:8000"
     environment:
-      - DB_HOST=db
+      # --- VARIÁVEIS ATUALIZADAS PARA O SUPABASE ---
+      - DB_HOST=aws-1-us-east-1.pooler.supabase.com
       - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASS=postgres
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_USER=postgres.lxruvrxicvtgexvumfjn
+      - DB_PASS=12345@Supabase # <-- COLOQUE SUA SENHA AQUI
+      - DB_PORT=5432
     depends_on:
-      - db
       - redis
 
   frontend:
     build: ./frontend
-    container_name: cashflow-frontend
     ports:
       - "3000:80"
-    depends_on:
-      - backend
-
-  db:
-    image: postgres:15-alpine
-    container_name: cashflow-db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+    # O frontend precisa saber onde está o backend
+    # (Seu Dockerfile do frontend precisa usar isso)
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:7-alpine
-    container_name: cashflow-redis
+      - REACT_APP_API_URL=http://localhost:8000
 
   celery_worker:
     build: ./backend
-    container_name: cashflow-celery-worker
     command: celery -A cashflow_backend worker -l info
-    volumes:
-      - ./backend:/app
     environment:
-      - DB_HOST=db
+      # O Celery também precisa das credenciais do Supabase
+      - DB_HOST=aws-1-us-east-1.pooler.supabase.com
       - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASS=postgres
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_USER=postgres.lxruvrxicvtgexvumfjn
+      - DB_PASS=12345@Supabase # <-- COLOQUE SUA SENHA AQUI
+      - DB_PORT=5432
     depends_on:
       - backend
       - redis
-
-volumes:
-  postgres_data:

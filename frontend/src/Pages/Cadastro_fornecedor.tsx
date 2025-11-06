@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
+// 1. Importar useNavigate e jwtDecode
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 // Tipagem para os objetos de estilo
 type StyleObject = React.CSSProperties;
 
-// 1. DEFINIÇÃO DO TIPO FORNECEDOR (COM ID)
+// 2. Interface para o Token
+interface TokenPayload {
+    username: string;
+    email: string;
+}
+
+// 3. DEFINIÇÃO DO TIPO FORNECEDOR (COM ID)
 type Fornecedor = {
     id: string; // ID único
     codigo: string;
@@ -114,13 +122,21 @@ const styles: { [key: string]: StyleObject } = {
         color: '#0d6efd',
         backgroundColor: '#e7f5ff'
     },
-    logoutButton: {
-        display: 'flex',
-        alignItems: 'center',
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        padding: '10px',
+    // 4. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
+    logoutButton: { 
+        display: 'flex', 
+        alignItems: 'center', 
+        background: 'none', 
+        border: 'none', 
+        cursor: 'pointer', 
+        padding: '10px', 
+        width: '100%', 
+        fontFamily: `'Segoe UI', sans-serif`, 
+        fontSize: '1rem', 
+        color: '#333', 
+        gap: '8px', 
+        fontWeight: 500, 
+        borderRadius: '8px',
     },
     mainContent: {
         flex: 1,
@@ -234,19 +250,44 @@ function FornecedoresPage() {
     const [selectedRow, setSelectedRow] = useState<string | null>(null);
     const navigate = useNavigate();
     
-    // 2. ESTADO PARA ARMAZENAR OS FORNECEDORES
     const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
-
     const tableHeaders = ['Código', 'Razão Social', 'CPF/CNPJ', 'Telefone', 'Inscrição Estadual'];
-    
-    // 3. LER OS FORNECEDORES DO LOCALSTORAGE
+
+    // 5. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
+    const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
+
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        navigate('/login');
+    };
+
     useEffect(() => {
-        // Usamos uma chave diferente: 'fornecedores'
+        // Lógica do Token
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const decodedToken = jwtDecode<TokenPayload>(token);
+                setUser({
+                    username: decodedToken.username,
+                    email: decodedToken.email || 'Nenhum e-mail'
+                });
+            } catch (error) {
+                console.error("Erro ao decodificar o token:", error);
+                handleLogout();
+            }
+        } else {
+            handleLogout();
+        }
+
+        // Lógica de carregar fornecedores do localStorage
         const fornecedoresSalvos = localStorage.getItem('fornecedores');
         if (fornecedoresSalvos) {
             setFornecedores(JSON.parse(fornecedoresSalvos));
         }
-    }, []);
+    }, []); // Array vazio, roda só uma vez
+    // FIM DA LÓGICA DO USUÁRIO
+
 
     const handleIncluirClick = () => {
         navigate('/cadastro_fornecedor/novo');
@@ -277,10 +318,12 @@ function FornecedoresPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                 <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> Usuário!</h2>
+                {/* 6. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
+                <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
                         <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Dashboard</Link></li>
+                        
                         <li>
                             <div 
                                 style={{...styles.navItem, ...styles.navItemActive, padding: '15px 20px', cursor: 'pointer'}}
@@ -303,23 +346,26 @@ function FornecedoresPage() {
                                 </ul>
                             )}
                         </li>
+
                         <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
                         <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                <button style={styles.logoutButton}><ArrowLeftIcon /></button>
+                {/* 7. ATUALIZAR BOTÃO DE LOGOUT */}
+                <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
             <main style={styles.mainContent}>
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
+                    {/* 8. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
-                            <strong>Usuário</strong><br/>
-                            <small>usuario@email.com</small>
+                            <strong>{user.username}</strong><br/>
+                            <small>{user.email}</small>
                         </div>
                     </div>
                 </header>

@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-// 1. Importar useNavigate
+// 1. Importar useNavigate e jwtDecode
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 // Tipagem para os objetos de estilo
 type StyleObject = React.CSSProperties;
 
-// 2. Tipagem para o Produto (baseado no formulário)
+// 2. Interface para o Token
+interface TokenPayload {
+    username: string;
+    email: string;
+}
+
+// 3. Tipagem para o Produto (baseado no formulário)
 type Produto = {
     id: string; // ID único do localStorage
     codigo: string;
@@ -52,7 +59,22 @@ const styles: { [key: string]: StyleObject } = {
     subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem' },
     subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px' },
     subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
-    logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px' },
+    // 4. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
+    logoutButton: { 
+        display: 'flex', 
+        alignItems: 'center', 
+        background: 'none', 
+        border: 'none', 
+        cursor: 'pointer', 
+        padding: '10px', 
+        width: '100%', 
+        fontFamily: `'Segoe UI', sans-serif`, 
+        fontSize: '1rem', 
+        color: '#333', 
+        gap: '8px', 
+        fontWeight: 500, 
+        borderRadius: '8px',
+    },
     mainContent: { flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 40px', overflowY: 'auto' },
     header: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px' },
     headerItem: { display: 'flex', alignItems: 'center', marginLeft: '20px', padding: '8px 12px', borderRadius: '8px', backgroundColor: '#e9ecef', fontSize: '0.9rem' },
@@ -63,12 +85,12 @@ const styles: { [key: string]: StyleObject } = {
     headerActionButton: { padding: '10px 20px', border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 },
     tableActions: { marginBottom: '20px' },
     tableActionButton: { padding: '10px 25px', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', marginRight: '10px' },
-    buttonDisabled: { backgroundColor: '#6c757d', cursor: 'not-allowed' }, // Estilo para botão desabilitado
+    buttonDisabled: { backgroundColor: '#6c757d', cursor: 'not-allowed' }, 
     table: { width: '100%', borderCollapse: 'collapse', marginTop: '20px' },
     th: { padding: '12px 15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', color: '#495057', fontWeight: 600, fontSize: '0.9rem' },
     td: { padding: '12px 15px', borderBottom: '1px solid #e9ecef' },
-    trHover: { cursor: 'pointer' }, // Estilo para hover na linha
-    trSelected: { backgroundColor: '#e7f5ff' }, // Estilo para linha selecionada
+    trHover: { cursor: 'pointer' }, 
+    trSelected: { backgroundColor: '#e7f5ff' }, 
     checkbox: { width: '18px', height: '18px' },
     noDataText: { textAlign: 'center', padding: '20px', color: '#6c757d', fontStyle: 'italic' }
 };
@@ -77,18 +99,44 @@ function ProdutosPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(true);
     const tableHeaders = ['Código', 'Descrição', 'Tipo', 'Unidade', 'NCM'];
     
-    // 3. ESTADOS PARA OS DADOS E NAVEGAÇÃO
     const [produtos, setProdutos] = useState<Produto[]>([]);
     const [selectedRow, setSelectedRow] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    // 4. LER DADOS DO LOCALSTORAGE
+    // 5. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
+    const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
+
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        navigate('/login');
+    };
+
     useEffect(() => {
+        // Lógica do Token
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const decodedToken = jwtDecode<TokenPayload>(token);
+                setUser({
+                    username: decodedToken.username,
+                    email: decodedToken.email || 'Nenhum e-mail'
+                });
+            } catch (error) {
+                console.error("Erro ao decodificar o token:", error);
+                handleLogout();
+            }
+        } else {
+            handleLogout();
+        }
+
+        // Lógica de carregar produtos do localStorage
         const produtosSalvos = localStorage.getItem('produtos');
         if (produtosSalvos) {
             setProdutos(JSON.parse(produtosSalvos));
         }
-    }, []);
+    }, []); // Array vazio, roda só uma vez
+    // FIM DA LÓGICA DO USUÁRIO
 
     // 5. FUNÇÕES DE AÇÃO
     const handleIncluirClick = () => {
@@ -120,10 +168,12 @@ function ProdutosPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                 <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> Usuário!</h2>
+                {/* 6. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
+                <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
                         <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Dashboard</Link></li>
+                        
                         <li>
                             <div 
                                 style={{...styles.navItem, ...styles.navItemActive, padding: '15px 20px', cursor: 'pointer'}}
@@ -146,23 +196,26 @@ function ProdutosPage() {
                                 </ul>
                             )}
                         </li>
+                        
                         <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
                         <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                <button style={styles.logoutButton}><ArrowLeftIcon /></button>
+                {/* 7. ATUALIZAR BOTÃO DE LOGOUT */}
+                <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
             <main style={styles.mainContent}>
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
+                    {/* 8. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
-                            <strong>Usuário</strong><br/>
-                            <small>usuario@email.com</small>
+                            <strong>{user.username}</strong><br/>
+                            <small>{user.email}</small>
                         </div>
                     </div>
                 </header>
