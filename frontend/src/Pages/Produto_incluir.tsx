@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-// 1. Importar 'useParams' e 'jwtDecode'
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 // --- TIPAGEM ---
 type StyleObject = React.CSSProperties;
 
-// 2. Interface para o Token
 interface TokenPayload {
     username: string;
     email: string;
@@ -16,26 +14,21 @@ interface TokenPayload {
 type ProdutoFormData = {
     codigo: string;
     descricao: string;
-    tipo: string;
-    unidade: string;
-    ncm: string;
-    ean: string;
-    precoVenda: string;
-    ipi: string;
+    tipo: string | null;
+    unidade: string | null;
+    ncm: string | null;
+    ean: string | null;
+    precoVenda: string | null;
+    ipi: string | null;
 };
 
-// Tipagem do Produto (com ID)
-type Produto = ProdutoFormData & {
-  id: string;
-};
-
-// --- ÍCONES SVG ---
+// --- Ícones (mesmos de antes) ---
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>;
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
 const ArrowLeftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
 const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
 
-// --- ESTILOS DO COMPONENTE ---
+// --- Estilos (mesmos de antes) ---
 const styles: { [key: string]: StyleObject } = {
     // ... (Seus estilos completos aqui) ...
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
@@ -53,22 +46,7 @@ const styles: { [key: string]: StyleObject } = {
     subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem' },
     subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px' },
     subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
-    // 3. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
-    logoutButton: { 
-        display: 'flex', 
-        alignItems: 'center', 
-        background: 'none', 
-        border: 'none', 
-        cursor: 'pointer', 
-        padding: '10px', 
-        width: '100%', 
-        fontFamily: `'Segoe UI', sans-serif`, 
-        fontSize: '1rem', 
-        color: '#333', 
-        gap: '8px', 
-        fontWeight: 500, 
-        borderRadius: '8px',
-    },
+    logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px', width: '100%', fontFamily: `'Segoe UI', sans-serif`, fontSize: '1rem', color: '#333', gap: '8px', fontWeight: 500, borderRadius: '8px', },
     header: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px' },
     headerItem: { display: 'flex', alignItems: 'center', marginLeft: '20px', padding: '8px 12px', borderRadius: '8px', backgroundColor: '#e9ecef', fontSize: '0.9rem' },
     content: { backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', flex: 1 },
@@ -94,12 +72,19 @@ function ProdutosIncluirPage() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
 
+    // Estado do formulário
     const [formData, setFormData] = useState<ProdutoFormData>({
-      codigo: '', descricao: '', tipo: '', unidade: '',
-      ncm: '', ean: '', precoVenda: '', ipi: '',
+      codigo: '',
+      descricao: '',
+      tipo: '',
+      unidade: '',
+      ncm: '',
+      ean: '',
+      precoVenda: '',
+      ipi: '',
     });
 
-    // 4. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
+    // Estado do usuário logado
     const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
 
     const handleLogout = () => {
@@ -108,12 +93,10 @@ function ProdutosIncluirPage() {
         navigate('/login');
     };
 
-    // Este useEffect agora faz as duas coisas:
-    // 1. Carrega os dados do usuário do token
-    // 2. Carrega os dados do produto (se estiver em modo de edição)
+    // ATUALIZADO: Buscar dados da API
     useEffect(() => {
-        // Lógica do Token
         const token = localStorage.getItem('authToken');
+        
         if (token) {
             try {
                 const decodedToken = jwtDecode<TokenPayload>(token);
@@ -123,26 +106,45 @@ function ProdutosIncluirPage() {
                 });
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
-                handleLogout(); // Desloga se o token for inválido
+                handleLogout();
             }
         } else {
-            handleLogout(); // Desloga se não houver token
+            handleLogout();
         }
 
-        // Lógica para carregar dados do formulário (modo de edição)
-        if (isEditMode && id) {
-            const produtosSalvos = localStorage.getItem('produtos') || '[]';
-            const produtos: Produto[] = JSON.parse(produtosSalvos);
-            const produtoParaEditar = produtos.find(p => p.id === id);
-            
-            if (produtoParaEditar) {
-                setFormData(produtoParaEditar);
-            } else {
-                alert("Produto não encontrado!");
-                navigate('/cadastro_produto');
-            }
+        // Se for modo de edição, buscar dados do produto específico na API
+        if (isEditMode && id && token) {
+            const fetchProduto = async () => {
+                try {
+                    const response = await fetch(`http://127.0.0.1:8000/api/produtos/${id}/`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error('Produto não encontrado');
+                    }
+                    const data = await response.json();
+                    // Converte 'null' de volta para string vazia para o formulário
+                    const formattedData: ProdutoFormData = {
+                        ...data,
+                        tipo: data.tipo || '',
+                        unidade: data.unidade || '',
+                        ncm: data.ncm || '',
+                        ean: data.ean || '',
+                        precoVenda: data.precoVenda || '',
+                        ipi: data.ipi || '',
+                    };
+                    setFormData(formattedData); 
+                } catch (error) {
+                    console.error("Erro ao buscar produto:", error);
+                    alert("Produto não encontrado!");
+                    navigate('/cadastro_produto');
+                }
+            };
+            fetchProduto();
         }
-    }, [id, isEditMode, navigate]); // Dependências do Effect
+    }, [id, isEditMode, navigate]);
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,33 +152,55 @@ function ProdutosIncluirPage() {
       setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Salva (Inclui ou Altera)
-    const handleSave = (e: React.FormEvent) => {
+    // ATUALIZADO: Salvar (POST) ou Alterar (PUT) na API
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const storageKey = 'produtos';
-            const produtosSalvos = localStorage.getItem(storageKey) || '[]';
-            const produtos: Produto[] = JSON.parse(produtosSalvos);
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            handleLogout(); 
+            return;
+        }
 
-            if (isEditMode) {
-                const index = produtos.findIndex(p => p.id === id);
-                if (index === -1) throw new Error("Produto não encontrado");
-                
-                const produtoAtualizado: Produto = { ...formData, id: id! };
-                produtos[index] = produtoAtualizado;
-                
-                localStorage.setItem(storageKey, JSON.stringify(produtos));
-                alert("Produto alterado com sucesso!");
-            } else {
-                const novoProduto: Produto = { ...formData, id: crypto.randomUUID() };
-                produtos.push(novoProduto);
-                localStorage.setItem(storageKey, JSON.stringify(produtos));
-                alert("Produto salvo com sucesso!");
+        const url = isEditMode 
+            ? `http://127.0.0.1:8000/api/produtos/${id}/` 
+            : 'http://127.0.0.1:8000/api/produtos/';
+        
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        // Converte strings vazias em 'null' para o Django
+        const dataToSave = {
+            ...formData,
+            tipo: formData.tipo || null,
+            unidade: formData.unidade || null,
+            ncm: formData.ncm || null,
+            ean: formData.ean || null,
+            precoVenda: formData.precoVenda || null,
+            ipi: formData.ipi || null,
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(dataToSave)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Erro ao salvar:', errorData);
+                const errorMessages = Object.values(errorData).join('\n');
+                throw new Error(`Falha ao salvar:\n${errorMessages}`);
             }
-            navigate('/cadastro_produto');
+
+            alert(isEditMode ? "Produto alterado com sucesso!" : "Produto salvo com sucesso!");
+            navigate('/cadastro_produto'); 
+
         } catch (error) {
-            console.error("Erro ao salvar no localStorage:", error);
-            alert("Ocorreu um erro ao salvar o produto.");
+            console.error("Erro ao salvar:", error);
+            alert(`Ocorreu um erro ao salvar o produto: ${error}`);
         }
     };
 
@@ -188,7 +212,6 @@ function ProdutosIncluirPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                  <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                 {/* 5. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
                  <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
@@ -215,12 +238,11 @@ function ProdutosIncluirPage() {
                                 </ul>
                             )}
                         </li>
-                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
-                        <li style={styles.navItem}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
+                        <li style={styles.navItem}><Link to="/contas-a-pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        <li style={styles.navItem}><Link to="/contas-a-receber" style={styles.navLink}>Contas a receber</Link></li>
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                {/* 6. ATUALIZAR BOTÃO DE LOGOUT */}
                 <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
@@ -228,7 +250,6 @@ function ProdutosIncluirPage() {
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
-                    {/* 7. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
@@ -262,29 +283,29 @@ function ProdutosIncluirPage() {
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="tipo">Tipo</label>
-                                <input style={styles.input} type="text" name="tipo" id="tipo" value={formData.tipo} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="tipo" id="tipo" value={formData.tipo || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="unidade">Unidade</label>
-                                <input style={styles.input} type="text" name="unidade" id="unidade" value={formData.unidade} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="unidade" id="unidade" value={formData.unidade || ''} onChange={handleChange} />
                             </div>
 
                             {/* Linha 2 */}
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="ncm">NCM</label>
-                                <input style={styles.input} type="text" name="ncm" id="ncm" value={formData.ncm} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="ncm" id="ncm" value={formData.ncm || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="ean">EAN</label>
-                                <input style={styles.input} type="text" name="ean" id="ean" value={formData.ean} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="ean" id="ean" value={formData.ean || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="precoVenda">Preço de Venda</label>
-                                <input style={styles.input} type="text" name="precoVenda" id="precoVenda" value={formData.precoVenda} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="precoVenda" id="precoVenda" value={formData.precoVenda || ''} onChange={handleChange} />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span3}}>
                                 <label style={styles.label} htmlFor="ipi">IPI</label>
-                                <input style={styles.input} type="text" name="ipi" id="ipi" value={formData.ipi} onChange={handleChange} />
+                                <input style={styles.input} type="text" name="ipi" id="ipi" value={formData.ipi || ''} onChange={handleChange} />
                             </div>
                         </div>
                     </form>

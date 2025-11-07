@@ -142,7 +142,7 @@ function ClientesIncluirPage() {
                         tipoPessoa: data.tipoPessoa || '',
                         tipo: data.tipo || '',
                     };
-                    setFormData(formattedData); // Preenche o formulário
+                    setFormData(formattedData); 
                 } catch (error) {
                     console.error("Erro ao buscar cliente:", error);
                     alert("Cliente não encontrado!");

@@ -52,3 +52,23 @@ class Fornecedor(models.Model):
 
     def __str__(self):
         return self.razaoSocial
+    
+class Produto(models.Model):
+    # Relaciona o produto ao usuário que o criou
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='produtos')
+    
+    # Campos do seu formulário (baseado na imagem)
+    codigo = models.CharField(max_length=100)
+    descricao = models.CharField(max_length=255)
+    tipo = models.CharField(max_length=100, blank=True, null=True)
+    unidade = models.CharField(max_length=50, blank=True, null=True)
+    ncm = models.CharField(max_length=100, blank=True, null=True)
+    ean = models.CharField(max_length=100, blank=True, null=True)
+    precoVenda = models.CharField(max_length=50, blank=True, null=True) # Usando CharField para manter simples como no frontend
+    ipi = models.CharField(max_length=50, blank=True, null=True) # Usando CharField
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.descricao
