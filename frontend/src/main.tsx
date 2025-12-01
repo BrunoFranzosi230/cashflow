@@ -21,6 +21,7 @@ import FornecedoresIncluirPage from './Pages/Fornecedores_Incluir.tsx';
 import ProdutosIncluirPage from './Pages/Produto_incluir.tsx';
 import ContasPagarIncluirPage from './Pages/ContasPagarIncluir.tsx';
 import ContasReceberIncluirPage from './Pages/ContasReceberIncluir.tsx';
+import ConfiguracoesPage from './Pages/Configuracoes.tsx';
 
 // 2. Componente de Rota Protegida (O "Guarda")
 const ProtectedRoute = () => {
@@ -82,6 +83,7 @@ const router = createBrowserRouter([
       { path: "/contas_a_receber", element: <ContasAReceberPage /> },
       { path: "/contas_a_receber/novo", element: <ContasReceberIncluirPage /> },
       { path: "/contas_a_receber/editar/:id", element: <ContasReceberIncluirPage /> },
+      { path: "/configuracoes", element: <ConfiguracoesPage /> }
     ]
   }
 ]);
