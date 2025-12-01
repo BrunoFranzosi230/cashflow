@@ -6,8 +6,8 @@ from rest_framework import status, viewsets # 1. Importe 'viewsets'
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 # 2. IMPORTE O MODELO E SERIALIZER DO CLIENTE
-from .serializers import ProdutoSerializer, UserSerializer, MyTokenObtainPairSerializer, ClienteSerializer, FornecedorSerializer
-from .models import Cliente, Fornecedor, Produto
+from .serializers import ProdutoSerializer, UserSerializer, MyTokenObtainPairSerializer, ClienteSerializer, FornecedorSerializer, ContaReceberSerializer, ContaPagarSerializer
+from .models import Cliente, Fornecedor, Produto, ContaReceber, ContaPagar
 
 # (View de Token - Você já tem)
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -94,4 +94,28 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         """
         Define o usuário do novo produto como o usuário logado.
         """
+        serializer.save(user=self.request.user)
+
+class ContaReceberViewSet(viewsets.ModelViewSet):
+    serializer_class = ContaReceberSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Retorna apenas as contas do usuário logado
+        return ContaReceber.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Define o usuário logado como dono da conta
+        serializer.save(user=self.request.user)
+
+class ContaPagarViewSet(viewsets.ModelViewSet):
+    serializer_class = ContaPagarSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Retorna apenas as contas do usuário logado
+        return ContaPagar.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Define o usuário logado como dono da conta
         serializer.save(user=self.request.user)

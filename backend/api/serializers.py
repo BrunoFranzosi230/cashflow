@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 # 1. IMPORTE O NOVO MODELO
-from .models import Cliente, Fornecedor, Produto
+from .models import Cliente, Fornecedor, Produto, ContaReceber, ContaPagar
 
 # (Serializer de User - Você já tem)
 class UserSerializer(serializers.ModelSerializer):
@@ -62,4 +62,21 @@ class ProdutoSerializer(serializers.ModelSerializer):
         ]
         # Torna o 'user' apenas leitura
         read_only_fields = ('user',)  
-        
+
+class ContaReceberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContaReceber
+        fields = [
+            'id', 'prefixo', 'numeroTitulo', 'tipo', 'dataEmissao', 
+            'cliente', 'valorTitulo', 'vencimento', 'status', 'user'
+        ]
+        read_only_fields = ('user',)
+
+class ContaPagarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContaPagar
+        fields = [
+            'id', 'prefixo', 'numeroTitulo', 'tipo', 'dataEmissao', 
+            'fornecedor', 'valorTitulo', 'vencimento', 'status', 'user'
+        ]
+        read_only_fields = ('user',)

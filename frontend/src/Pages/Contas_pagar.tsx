@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-// 1. Importar useNavigate e jwtDecode
 import { Link, useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // ... ADICIONADO ...
+import { jwtDecode } from 'jwt-decode';
 
 // --- TIPAGEM ---
 type StyleObject = React.CSSProperties;
 
-// 2. Interface para o Token (ADICIONADO)
 interface TokenPayload {
     username: string;
     email: string;
+    user_id?: number;
 }
 
-// 3. Tipo da Conta ATUALIZADO (id é string)
+// 3. Tipo da Conta
+// Nota: Certifique-se que o backend retorna exatamente esses nomes de campos
 type Conta = {
-  id: string; // ID do localStorage
+  id: string; // O Django retorna o ID (geralmente numérico ou UUID)
   status: 'Aberto' | 'Pago' | 'Vencido';
   prefixo: string;
   numeroTitulo: string;
@@ -34,7 +34,6 @@ const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16"
 
 // --- ESTILOS ---
 const styles: { [key: string]: StyleObject } = {
-    // ... (Seus estilos completos aqui) ...
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
     sidebarHeader: { marginBottom: '40px' },
@@ -66,46 +65,18 @@ const styles: { [key: string]: StyleObject } = {
     trSelected: { backgroundColor: '#e7f5ff' },
     checkbox: { width: '18px', height: '18px' },
     statusBadge: { padding: '4px 10px', fontSize: '0.8rem', fontWeight: '600', borderRadius: '12px', color: 'white', cursor: 'pointer' },
-    // 4. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
     logoutButton: { 
-        display: 'flex', 
-        alignItems: 'center', 
-        background: 'none', 
-        border: 'none', 
-        cursor: 'pointer', 
-        padding: '10px', 
-        width: '100%', 
-        fontFamily: `'Segoe UI', sans-serif`, 
-        fontSize: '1rem', 
-        color: '#333', 
-        gap: '8px', 
-        fontWeight: 500, 
-        borderRadius: '8px',
+        display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', 
+        padding: '10px', width: '100%', fontFamily: `'Segoe UI', sans-serif`, fontSize: '1rem', 
+        color: '#333', gap: '8px', fontWeight: 500, borderRadius: '8px',
     },
     noDataText: { textAlign: 'center', padding: '20px', color: '#6c757d', fontStyle: 'italic' },
-    statusContainer: {
-        position: 'relative',
-        display: 'inline-block',
-    },
+    statusContainer: { position: 'relative', display: 'inline-block' },
     statusDropdown: {
-        position: 'absolute',
-        top: '100%',
-        left: 0,
-        backgroundColor: 'white',
-        border: '1px solid #e0e0e0',
-        borderRadius: '6px',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        zIndex: 10,
-        marginTop: '4px',
-        padding: '5px 0',
-        minWidth: '100px',
+        position: 'absolute', top: '100%', left: 0, backgroundColor: 'white', border: '1px solid #e0e0e0',
+        borderRadius: '6px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', zIndex: 10, marginTop: '4px', padding: '5px 0', minWidth: '100px',
     },
-    statusDropdownItem: {
-        padding: '8px 15px',
-        cursor: 'pointer',
-        fontSize: '0.9rem',
-        color: '#333',
-    },
+    statusDropdownItem: { padding: '8px 15px', cursor: 'pointer', fontSize: '0.9rem', color: '#333' },
 };
 
 function ContasAPagarPage() {
@@ -113,12 +84,12 @@ function ContasAPagarPage() {
     const [contas, setContas] = useState<Conta[]>([]); 
     const [selectedRow, setSelectedRow] = useState<string | null>(null); 
     const navigate = useNavigate();
-    const storageKey = 'contas_a_pagar'; 
-    
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-
-    // 5. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
     const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
+    const [isLoading, setIsLoading] = useState(false);
+
+    // URL da API
+    const API_URL = 'http://127.0.0.1:8000/api/contas-pagar/';
 
     const handleLogout = () => {
         localStorage.removeItem('authToken');
@@ -126,8 +97,34 @@ function ContasAPagarPage() {
         navigate('/login');
     };
 
+    // Função para carregar dados da API
+    const fetchContas = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        setIsLoading(true);
+        try {
+            const response = await fetch(API_URL, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setContas(data);
+            } else {
+                console.error("Erro ao buscar contas");
+            }
+        } catch (error) {
+            console.error("Erro de rede:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        // Lógica do Token
         const token = localStorage.getItem('authToken');
         if (token) {
             try {
@@ -136,6 +133,8 @@ function ContasAPagarPage() {
                     username: decodedToken.username,
                     email: decodedToken.email || 'Nenhum e-mail'
                 });
+                // Carregar as contas ao iniciar
+                fetchContas();
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
                 handleLogout();
@@ -143,19 +142,12 @@ function ContasAPagarPage() {
         } else {
             handleLogout();
         }
-
-        // Lógica de carregar contas do localStorage
-        const dadosSalvos = localStorage.getItem(storageKey);
-        if (dadosSalvos) {
-            setContas(JSON.parse(dadosSalvos));
-        }
-    }, []); // Array vazio, roda só uma vez
-    // FIM DA LÓGICA DO USUÁRIO
+    }, []);
 
     const getStatusStyle = (status: Conta['status']): React.CSSProperties => {
-        if (status === 'Aberto') return { ...styles.statusBadge, backgroundColor: '#0d6efd' }; // Azul
-        if (status === 'Pago') return { ...styles.statusBadge, backgroundColor: '#198754' }; // Verde
-        if (status === 'Vencido') return { ...styles.statusBadge, backgroundColor: '#dc3545' }; // Vermelho
+        if (status === 'Aberto') return { ...styles.statusBadge, backgroundColor: '#0d6efd' };
+        if (status === 'Pago') return { ...styles.statusBadge, backgroundColor: '#198754' };
+        if (status === 'Vencido') return { ...styles.statusBadge, backgroundColor: '#dc3545' };
         return styles.statusBadge;
     };
 
@@ -164,16 +156,32 @@ function ContasAPagarPage() {
         setOpenDropdownId(prevId => (prevId === id ? null : id));
     };
 
-    const handleStatusUpdate = (e: React.MouseEvent, clickedId: string, newStatus: Conta['status']) => {
+    // Atualizar Status via API (PATCH)
+    const handleStatusUpdate = async (e: React.MouseEvent, clickedId: string, newStatus: Conta['status']) => {
         e.stopPropagation(); 
-        const contasSalvas = localStorage.getItem(storageKey) || '[]';
-        const contasAtual: Conta[] = JSON.parse(contasSalvas);
-        const index = contasAtual.findIndex(c => c.id === clickedId);
-        if (index === -1) return; 
-        contasAtual[index].status = newStatus;
-        localStorage.setItem(storageKey, JSON.stringify(contasAtual));
-        setContas(contasAtual); 
-        setOpenDropdownId(null); 
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        try {
+            const response = await fetch(`${API_URL}${clickedId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                // Atualiza a lista localmente para refletir a mudança sem recarregar tudo
+                setContas(prev => prev.map(c => c.id === clickedId ? { ...c, status: newStatus } : c));
+                setOpenDropdownId(null);
+            } else {
+                alert("Erro ao atualizar status.");
+            }
+        } catch (error) {
+            console.error("Erro ao atualizar status:", error);
+        }
     };
 
     const handleIncluirClick = () => {
@@ -188,16 +196,35 @@ function ContasAPagarPage() {
         }
     };
 
-    const handleExcluirClick = () => {
+    // Excluir via API (DELETE)
+    const handleExcluirClick = async () => {
         if (!selectedRow) {
             alert("Por favor, selecione um título para excluir.");
             return;
         }
         if (window.confirm("Tem certeza que deseja excluir este título?")) {
-            const novasContas = contas.filter(c => c.id !== selectedRow);
-            setContas(novasContas);
-            localStorage.setItem(storageKey, JSON.stringify(novasContas));
-            setSelectedRow(null);
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_URL}${selectedRow}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    setContas(prev => prev.filter(c => c.id !== selectedRow));
+                    setSelectedRow(null);
+                    alert("Conta excluída com sucesso.");
+                } else {
+                    alert("Erro ao excluir conta.");
+                }
+            } catch (error) {
+                console.error("Erro ao excluir:", error);
+                alert("Erro de conexão.");
+            }
         }
     };
 
@@ -205,7 +232,6 @@ function ContasAPagarPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                 <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                {/* 6. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
                 <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
@@ -228,7 +254,6 @@ function ContasAPagarPage() {
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                {/* 7. ATUALIZAR BOTÃO DE LOGOUT */}
                 <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
@@ -236,7 +261,6 @@ function ContasAPagarPage() {
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
-                    {/* 8. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
@@ -275,7 +299,9 @@ function ContasAPagarPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {contas.length > 0 ? (
+                            {isLoading ? (
+                                <tr><td colSpan={7} style={styles.noDataText}>Carregando...</td></tr>
+                            ) : contas.length > 0 ? (
                                 contas.map((conta) => {
                                     const isSelected = selectedRow === conta.id;
                                     return (
@@ -300,8 +326,8 @@ function ContasAPagarPage() {
                                             </td>
                                             <td style={styles.td}>{conta.fornecedor}</td>
                                             <td style={styles.td}>{conta.numeroTitulo}</td>
-                                            <td style={styles.td}>{new Date(conta.dataEmissao).toLocaleDateString('pt-BR')}</td>
-                                            <td style={styles.td}>{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</td>
+                                            <td style={styles.td}>{conta.dataEmissao ? new Date(conta.dataEmissao).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : '-'}</td>
+                                            <td style={styles.td}>{conta.vencimento ? new Date(conta.vencimento).toLocaleDateString('pt-BR', {timeZone: 'UTC'}) : '-'}</td>
                                             <td style={styles.td}>{`R$ ${conta.valorTitulo}`}</td>
                                         </tr>
                                     )

@@ -72,3 +72,53 @@ class Produto(models.Model):
 
     def __str__(self):
         return self.descricao
+
+class ContaReceber(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contas_receber')
+    
+    prefixo = models.CharField(max_length=50, blank=True, null=True)
+    numeroTitulo = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=100)
+    dataEmissao = models.DateField()
+    cliente = models.CharField(max_length=255) # Armazena o nome do cliente
+    valorTitulo = models.CharField(max_length=50) # CharField para aceitar formatação monetária simples
+    vencimento = models.DateField()
+    
+    # Status com opções fixas
+    STATUS_CHOICES = [
+        ('Aberto', 'Aberto'),
+        ('Recebido', 'Recebido'),
+        ('Pendente', 'Pendente'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Aberto')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.numeroTitulo} - {self.cliente}"
+
+class ContaPagar(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contas_pagar')
+    
+    prefixo = models.CharField(max_length=50, blank=True, null=True)
+    numeroTitulo = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=100)
+    dataEmissao = models.DateField()
+    fornecedor = models.CharField(max_length=255) # Armazena o nome do fornecedor
+    valorTitulo = models.CharField(max_length=50)
+    vencimento = models.DateField()
+    
+    # Status com opções fixas
+    STATUS_CHOICES = [
+        ('Aberto', 'Aberto'),
+        ('Pago', 'Pago'),
+        ('Vencido', 'Vencido'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Aberto')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.numeroTitulo} - {self.fornecedor}"

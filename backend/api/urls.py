@@ -8,6 +8,8 @@ router = DefaultRouter()
 router.register(r'clientes', views.ClienteViewSet, basename='cliente')
 router.register(r'fornecedores', views.FornecedorViewSet, basename='fornecedor')
 router.register(r'produtos', views.ProdutoViewSet, basename='produto')
+router.register(r'contas-receber', views.ContaReceberViewSet, basename='contareceber')
+router.register(r'contas-pagar', views.ContaPagarViewSet, basename='contapagar')
 # 4. Adicione as rotas do router ao urlpatterns
 urlpatterns = [
     # Suas rotas existentes

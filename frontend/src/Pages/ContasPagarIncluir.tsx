@@ -1,32 +1,26 @@
 import React, { useState, useEffect } from 'react';
-// 1. Importar 'useParams' e 'jwtDecode'
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // ... ADICIONADO ...
+import { jwtDecode } from 'jwt-decode';
 
 // --- TIPAGEM ---
 type StyleObject = React.CSSProperties;
 
-// 2. Interface para o Token (ADICIONADO)
 interface TokenPayload {
     username: string;
     email: string;
+    user_id?: number;
 }
 
-// Tipagem para os dados do formulário
+// Tipagem para os dados do formulário (Frontend)
 type ContaFormData = {
-  prefixo: string;
-  numeroTitulo: string;
-  tipo: string;
-  dataEmissao: string;
-  fornecedor: string;
-  valorTitulo: string;
-  vencimento: string;
-};
-
-// Tipagem da Conta (com ID e Status)
-type Conta = ContaFormData & {
-  id: string;
-  status: 'Aberto' | 'Pago' | 'Vencido'; // Status correto
+    prefixo: string;
+    numeroTitulo: string;
+    tipo: string;
+    dataEmissao: string;
+    fornecedor: string;
+    valorTitulo: string;
+    vencimento: string;
+    status?: 'Aberto' | 'Pago' | 'Vencido';
 };
 
 // --- ÍCONES SVG ---
@@ -37,7 +31,6 @@ const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16"
 
 // --- ESTILOS DO COMPONENTE ---
 const styles: { [key: string]: StyleObject } = {
-    // ... (Seus estilos completos aqui) ...
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
     mainContent: { flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 40px', overflowY: 'auto' },
@@ -53,21 +46,10 @@ const styles: { [key: string]: StyleObject } = {
     subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem' },
     subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px' },
     subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
-    // 3. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
     logoutButton: { 
-        display: 'flex', 
-        alignItems: 'center', 
-        background: 'none', 
-        border: 'none', 
-        cursor: 'pointer', 
-        padding: '10px', 
-        width: '100%', 
-        fontFamily: `'Segoe UI', sans-serif`, 
-        fontSize: '1rem', 
-        color: '#333', 
-        gap: '8px', 
-        fontWeight: 500, 
-        borderRadius: '8px',
+        display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', 
+        padding: '10px', width: '100%', fontFamily: `'Segoe UI', sans-serif`, fontSize: '1rem', 
+        color: '#333', gap: '8px', fontWeight: 500, borderRadius: '8px',
     },
     header: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px' },
     headerItem: { display: 'flex', alignItems: 'center', marginLeft: '20px', padding: '8px 12px', borderRadius: '8px', backgroundColor: '#e9ecef', fontSize: '0.9rem' },
@@ -90,17 +72,19 @@ const styles: { [key: string]: StyleObject } = {
 function ContasPagarIncluirPage() {
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
     const navigate = useNavigate();
-    const { id } = useParams<{ id: string }>();
+    const { id } = useParams<{ id: string }>(); 
     const isEditMode = !!id;
-    const storageKey = 'contas_a_pagar';
+    
+    // URL da API
+    const API_URL = 'http://127.0.0.1:8000/api/contas-pagar/';
 
     const [formData, setFormData] = useState<ContaFormData>({
-      prefixo: '', numeroTitulo: '', tipo: '', dataEmissao: '',
-      fornecedor: '', valorTitulo: '', vencimento: '',
+        prefixo: '', numeroTitulo: '', tipo: '', dataEmissao: '',
+        fornecedor: '', valorTitulo: '', vencimento: '', status: 'Aberto'
     });
 
-    // 4. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
     const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('authToken');
@@ -108,12 +92,10 @@ function ContasPagarIncluirPage() {
         navigate('/login');
     };
 
-    // Este useEffect agora faz as duas coisas:
-    // 1. Carrega os dados do usuário do token
-    // 2. Carrega os dados da conta (se estiver em modo de edição)
+    // 1. Carregar Token e Dados da Conta (se edição)
     useEffect(() => {
-        // Lógica do Token
         const token = localStorage.getItem('authToken');
+
         if (token) {
             try {
                 const decodedToken = jwtDecode<TokenPayload>(token);
@@ -122,64 +104,110 @@ function ContasPagarIncluirPage() {
                     email: decodedToken.email || 'Nenhum e-mail'
                 });
             } catch (error) {
-                console.error("Erro ao decodificar o token:", error);
-                handleLogout(); // Desloga se o token for inválido
+                console.error("Token inválido:", error);
+                handleLogout();
+                return;
             }
         } else {
-            handleLogout(); // Desloga se não houver token
+            handleLogout();
+            return;
         }
 
-        // Lógica para carregar dados do formulário (modo de edição)
+        // Se estiver em modo de edição, buscar dados na API
         if (isEditMode && id) {
-            const contasSalvas = localStorage.getItem(storageKey) || '[]';
-            const contas: Conta[] = JSON.parse(contasSalvas);
-            const contaParaEditar = contas.find(c => c.id === id);
-            
-            if (contaParaEditar) {
-                setFormData(contaParaEditar);
-            } else {
-                alert("Conta não encontrada!");
+            setIsLoading(true);
+            fetch(`${API_URL}${id}/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(async (response) => {
+                if (!response.ok) throw new Error('Erro ao buscar conta');
+                return response.json();
+            })
+            .then((data) => {
+                // COMO O BACKEND JÁ RETORNA EM CAMELCASE (numeroTitulo, etc), 
+                // NÃO PRECISAMOS DE TRADUÇÃO COMPLEXA.
+                setFormData({
+                    prefixo: data.prefixo,
+                    numeroTitulo: data.numeroTitulo, 
+                    tipo: data.tipo,
+                    dataEmissao: data.dataEmissao,
+                    fornecedor: data.fornecedor,
+                    valorTitulo: data.valorTitulo,
+                    vencimento: data.vencimento,
+                    status: data.status
+                });
+            })
+            .catch((error) => {
+                console.error("Erro na API:", error);
+                alert("Erro ao carregar dados da conta.");
                 navigate('/contas_a_pagar');
-            }
+            })
+            .finally(() => setIsLoading(false));
         }
-    }, [id, isEditMode, navigate]); // Dependências do Effect
+    }, [id, isEditMode, navigate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Salva (Inclui ou Altera)
-    const handleSave = (e: React.FormEvent) => {
+    // 2. Salvar (POST ou PUT na API)
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const contasSalvas = localStorage.getItem(storageKey) || '[]';
-            const contas: Conta[] = JSON.parse(contasSalvas);
+        setIsLoading(true);
 
-            if (isEditMode) {
-                const index = contas.findIndex(c => c.id === id);
-                if (index === -1) throw new Error("Conta não encontrada");
-                
-                const statusOriginal = contas[index].status;
-                const contaAtualizada: Conta = { ...formData, id: id!, status: statusOriginal };
-                contas[index] = contaAtualizada;
-                
-                localStorage.setItem(storageKey, JSON.stringify(contas));
-                alert("Conta alterada com sucesso!");
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            alert("Sessão expirada");
+            handleLogout();
+            return;
+        }
+
+        // Preparar Payload:
+        // Como o seu modelo Django usa nomes em camelCase (numeroTitulo, dataEmissao),
+        // enviamos exatamente assim, sem converter para snake_case.
+        const payload = {
+            prefixo: formData.prefixo,
+            numeroTitulo: formData.numeroTitulo, // Igual ao model
+            tipo: formData.tipo,
+            dataEmissao: formData.dataEmissao,   // Igual ao model
+            fornecedor: formData.fornecedor,
+            valorTitulo: formData.valorTitulo,   // Igual ao model
+            vencimento: formData.vencimento,
+            status: isEditMode ? formData.status : 'Aberto'
+        };
+
+        const method = isEditMode ? 'PUT' : 'POST';
+        const url = isEditMode ? `${API_URL}${id}/` : API_URL;
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert(`Conta ${isEditMode ? 'alterada' : 'criada'} com sucesso!`);
+                navigate('/contas_a_pagar');
             } else {
-                const novaConta: Conta = {
-                    ...formData,
-                    id: crypto.randomUUID(),
-                    status: 'Aberto' 
-                };
-                contas.push(novaConta);
-                localStorage.setItem(storageKey, JSON.stringify(contas));
-                alert("Conta salva com sucesso!");
+                const errorData = await response.json();
+                console.error("Erro API:", errorData);
+                const errorMsg = typeof errorData === 'object' ? JSON.stringify(errorData) : 'Erro ao salvar.';
+                alert(`Erro ao salvar: ${errorMsg}`);
             }
-            navigate('/contas_a_pagar');
         } catch (error) {
-            console.error("Erro ao salvar no localStorage:", error);
-            alert("Ocorreu um erro ao salvar a conta.");
+            console.error("Erro de rede:", error);
+            alert("Erro de conexão com o servidor.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -191,7 +219,6 @@ function ContasPagarIncluirPage() {
         <div style={styles.pageContainer}>
             <aside style={styles.sidebar}>
                  <div style={styles.sidebarHeader}><h1 style={styles.logo}>CashFlow</h1></div>
-                 {/* 5. ATUALIZAR MENSAGEM DE BOAS-VINDAS */}
                  <h2 style={styles.welcomeMessage}>Bem-Vindo, <br /> {user.username}!</h2>
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
@@ -217,7 +244,6 @@ function ContasPagarIncluirPage() {
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
-                {/* 6. ATUALIZAR BOTÃO DE LOGOUT */}
                 <button onClick={handleLogout} style={styles.logoutButton}><ArrowLeftIcon /> <span>Sair</span></button>
             </aside>
 
@@ -225,7 +251,6 @@ function ContasPagarIncluirPage() {
                 <header style={styles.header}>
                     <div style={styles.headerItem}>Empresa / Filial</div>
                     <div style={styles.headerItem}><BellIcon /></div>
-                    {/* 7. ATUALIZAR HEADER COM DADOS DO USUÁRIO */}
                     <div style={styles.headerItem}>
                         <UserIcon />
                         <div style={{marginLeft: '10px'}}>
@@ -242,8 +267,10 @@ function ContasPagarIncluirPage() {
                                 {isEditMode ? 'Contas a Pagar - Alterar' : 'Contas a Pagar - Incluir'}
                             </h1>
                             <div style={styles.actions}>
-                                <button type="button" onClick={handleCancel} style={styles.button}>Cancelar</button>
-                                <button type="submit" style={{...styles.button, ...styles.buttonSave}}>Salvar</button>
+                                <button type="button" onClick={handleCancel} style={styles.button} disabled={isLoading}>Cancelar</button>
+                                <button type="submit" style={{...styles.button, ...styles.buttonSave}} disabled={isLoading}>
+                                    {isLoading ? 'Salvando...' : 'Salvar'}
+                                </button>
                             </div>
                         </div>
                         
@@ -273,7 +300,8 @@ function ContasPagarIncluirPage() {
                             </div>
                             <div style={{...styles.formGroup, ...styles.span4}}>
                                 <label style={styles.label} htmlFor="valorTitulo">Valor Título<span style={styles.requiredAsterisk}>*</span></label>
-                                <input style={styles.input} type="text" name="valorTitulo" id="valorTitulo" value={formData.valorTitulo} onChange={handleChange} required />
+                                {/* O input type="number" ajuda na UX, mesmo que o backend receba como string */}
+                                <input style={styles.input} type="number" step="0.01" name="valorTitulo" id="valorTitulo" value={formData.valorTitulo} onChange={handleChange} required />
                             </div>
                             <div style={{...styles.formGroup, ...styles.span4}}>
                                 <label style={styles.label} htmlFor="vencimento">Vencimento<span style={styles.requiredAsterisk}>*</span></label>

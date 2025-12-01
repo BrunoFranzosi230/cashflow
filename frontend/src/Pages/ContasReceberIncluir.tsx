@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-// 1. Importar useNavigate, useParams e jwtDecode
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 // --- TIPAGEM ---
 type StyleObject = React.CSSProperties;
 
-// 2. Interface para o Token
 interface TokenPayload {
     username: string;
     email: string;
 }
 
-// Tipagem para os dados do formulário
 type ContaFormData = {
   prefixo: string;
   numeroTitulo: string;
@@ -23,12 +20,6 @@ type ContaFormData = {
   vencimento: string;
 };
 
-// TIPO ATUALIZADO
-type Conta = ContaFormData & {
-  id: string;
-  status: 'Aberto' | 'Recebido' | 'Pendente';
-};
-
 // --- ÍCONES SVG ---
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>;
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
@@ -37,7 +28,6 @@ const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16"
 
 // --- ESTILOS DO COMPONENTE ---
 const styles: { [key: string]: StyleObject } = {
-    // ... (Seus estilos completos aqui) ...
     pageContainer: { display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: `'Segoe UI', sans-serif`, color: '#333' },
     sidebar: { width: '280px', backgroundColor: '#ffffff', padding: '20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e0e0e0' },
     mainContent: { flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 40px', overflowY: 'auto' },
@@ -52,23 +42,7 @@ const styles: { [key: string]: StyleObject } = {
     subNavList: { listStyle: 'none', padding: '5px 0 5px 25px', margin: '5px 0 0 0' },
     subNavItem: { margin: '2px 0', borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem' },
     subNavLink: { display: 'block', padding: '10px 15px', textDecoration: 'none', color: 'inherit', borderRadius: '6px' },
-    subNavItemActive: { fontWeight: 'bold', color: '#0d6efd', backgroundColor: '#e7f5ff' },
-    // 3. ESTILO DO BOTÃO DE LOGOUT ATUALIZADO
-    logoutButton: { 
-        display: 'flex', 
-        alignItems: 'center', 
-        background: 'none', 
-        border: 'none', 
-        cursor: 'pointer', 
-        padding: '10px', 
-        width: '100%', 
-        fontFamily: `'Segoe UI', sans-serif`, 
-        fontSize: '1rem', 
-        color: '#333', 
-        gap: '8px', 
-        fontWeight: 500, 
-        borderRadius: '8px',
-    },
+    logoutButton: { display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '10px', width: '100%', fontFamily: `'Segoe UI', sans-serif`, fontSize: '1rem', color: '#333', gap: '8px', fontWeight: 500, borderRadius: '8px', },
     header: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px' },
     headerItem: { display: 'flex', alignItems: 'center', marginLeft: '20px', padding: '8px 12px', borderRadius: '8px', backgroundColor: '#e9ecef', fontSize: '0.9rem' },
     content: { backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', flex: 1 },
@@ -88,19 +62,16 @@ const styles: { [key: string]: StyleObject } = {
 };
 
 function ContasReceberIncluirPage() {
-    // --- CORREÇÃO 1: Definir 'isCadastrosOpen' como 'false' ---
-    const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
+    const [isCadastrosOpen, setIsCadastrosOpen] = useState(false); // FECHADO POR PADRÃO
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
-    const storageKey = 'contas_a_receber';
 
     const [formData, setFormData] = useState<ContaFormData>({
       prefixo: '', numeroTitulo: '', tipo: '', dataEmissao: '',
       cliente: '', valorTitulo: '', vencimento: '',
     });
 
-    // 4. ADICIONAR LÓGICA DO USUÁRIO E LOGOUT
     const [user, setUser] = useState({ username: 'Usuário', email: 'carregando...' });
 
     const handleLogout = () => {
@@ -109,11 +80,7 @@ function ContasReceberIncluirPage() {
         navigate('/login');
     };
 
-    // Este useEffect agora faz as duas coisas:
-    // 1. Carrega os dados do usuário do token
-    // 2. Carrega os dados da conta (se estiver em modo de edição)
     useEffect(() => {
-        // Lógica do Token
         const token = localStorage.getItem('authToken');
         if (token) {
             try {
@@ -123,64 +90,84 @@ function ContasReceberIncluirPage() {
                     email: decodedToken.email || 'Nenhum e-mail'
                 });
             } catch (error) {
-                console.error("Erro ao decodificar o token:", error);
-                handleLogout(); // Desloga se o token for inválido
+                handleLogout();
             }
         } else {
-            handleLogout(); // Desloga se não houver token
+            handleLogout();
         }
 
-        // Lógica para carregar dados do formulário (modo de edição)
-        if (isEditMode && id) {
-            const contasSalvas = localStorage.getItem(storageKey) || '[]';
-            const contas: Conta[] = JSON.parse(contasSalvas);
-            const contaParaEditar = contas.find(c => c.id === id);
-            
-            if (contaParaEditar) {
-                setFormData(contaParaEditar);
-            } else {
-                alert("Conta não encontrada!");
-                navigate('/contas_a_receber');
-            }
+        // Carrega dados (GET) se for edição
+        if (isEditMode && id && token) {
+            const fetchConta = async () => {
+                try {
+                    const response = await fetch(`http://127.0.0.1:8000/api/contas-receber/${id}/`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!response.ok) throw new Error('Conta não encontrada');
+                    const data = await response.json();
+                    
+                    // Converte null para string vazia
+                    setFormData({
+                        prefixo: data.prefixo || '',
+                        numeroTitulo: data.numeroTitulo || '',
+                        tipo: data.tipo || '',
+                        dataEmissao: data.dataEmissao || '',
+                        cliente: data.cliente || '',
+                        valorTitulo: data.valorTitulo || '',
+                        vencimento: data.vencimento || '',
+                    });
+                } catch (error) {
+                    console.error("Erro ao buscar conta:", error);
+                    alert("Conta não encontrada!");
+                    navigate('/contas_a_receber');
+                }
+            };
+            fetchConta();
         }
-    }, [id, isEditMode, navigate]); // Dependências do Effect
-
+    }, [id, isEditMode, navigate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
       setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Salva (Inclui ou Altera)
-    const handleSave = (e: React.FormEvent) => {
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const contasSalvas = localStorage.getItem(storageKey) || '[]';
-            const contas: Conta[] = JSON.parse(contasSalvas);
+        const token = localStorage.getItem('authToken');
+        if (!token) { handleLogout(); return; }
 
-            if (isEditMode) {
-                const index = contas.findIndex(c => c.id === id);
-                if (index === -1) throw new Error("Conta não encontrada");
-                
-                const statusOriginal = contas[index].status;
-                const contaAtualizada: Conta = { ...formData, id: id!, status: statusOriginal };
-                contas[index] = contaAtualizada;
-                
-                localStorage.setItem(storageKey, JSON.stringify(contas));
-                alert("Conta alterada com sucesso!");
-            } else {
-                const novaConta: Conta = {
-                    ...formData,
-                    id: crypto.randomUUID(),
-                    status: 'Aberto' 
-                };
-                contas.push(novaConta);
-                localStorage.setItem(storageKey, JSON.stringify(contas));
-                alert("Conta salva com sucesso!");
+        const url = isEditMode 
+            ? `http://127.0.0.1:8000/api/contas-receber/${id}/` 
+            : 'http://127.0.0.1:8000/api/contas-receber/';
+        
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        // Preparar dados (garantir que não envie campos que o backend não espera)
+        const dataToSave = { ...formData };
+        // No Create (POST), o backend define o status 'Aberto' por padrão.
+        // No Update (PUT), se não enviarmos status, ele mantém o que tem (ideal).
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(dataToSave)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Erro ao salvar:', errorData);
+                throw new Error('Falha ao salvar.');
             }
+
+            alert(isEditMode ? "Conta alterada com sucesso!" : "Conta salva com sucesso!");
             navigate('/contas_a_receber');
+
         } catch (error) {
-            console.error("Erro ao salvar no localStorage:", error);
+            console.error("Erro ao salvar:", error);
             alert("Ocorreu um erro ao salvar a conta.");
         }
     };
@@ -198,7 +185,6 @@ function ContasReceberIncluirPage() {
                     <ul style={styles.navList}>
                         <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Dashboard</Link></li>
                         <li>
-                            {/* --- CORREÇÃO 2: Remover o estilo 'navItemActive' daqui --- */}
                             <div 
                                 style={{...styles.navItem, padding: '15px 20px', cursor: 'pointer'}}
                                 onClick={() => setIsCadastrosOpen(!isCadastrosOpen)}
@@ -214,9 +200,11 @@ function ContasReceberIncluirPage() {
                                 </ul>
                             )}
                         </li>
-                        <li style={styles.navItem}><Link to="/contas-a-pagar" style={styles.navLink}>Contas a pagar</Link></li>
-                        {/* --- CORREÇÃO 3: Adicionar o 'navItemActive' aqui --- */}
+                        <li style={styles.navItem}><Link to="/contas_a_pagar" style={styles.navLink}>Contas a pagar</Link></li>
+                        
+                        {/* MENU ATIVO CORRIGIDO */}
                         <li style={{...styles.navItem, ...styles.navItemActive}}><Link to="/contas_a_receber" style={styles.navLink}>Contas a receber</Link></li>
+                        
                         <li style={styles.navItem}><Link to="/configuracoes" style={styles.navLink}>Configurações</Link></li>
                     </ul>
                 </nav>
