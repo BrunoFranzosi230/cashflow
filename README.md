@@ -1,5 +1,17 @@
 <h1>CashFlow - Platarforma de Fluxo  de Caixa</h1>
 
+### PAC - Projeto de Aprendizagem Colaborativa Extensionista
+**Curso:** Engenharia de Software - Católica de Santa Catarina  
+**Entidade Beneficiada:** Madeireira Araquari
+
+**Autores:**
+* Bruno Franzosi.
+* Fernando Lucas Moraes da Luz.
+
+**Professores Orientadores:**
+* Luiz Carlos Camargo
+* Claudinei Dias
+
 <p>A CahFlow é uma solução intuitiva e eficiente para gerenciar o fluxo de caixa da empresa madeirra Araquari. Com uma interface simples e funcionalidades avançadas, o sistema permite acompanhar entradas e saídas financeiras, gerando relatórios detalhados para uma melhor tomada de decisão.</p>
 
 <h2>Objetivo</h2>
@@ -16,6 +28,38 @@
 * React.js
 * Vite
 * Tailwind CSS 
+
+## Como executar o projeto
+
+### Pré-requisitos
+* Docker e Docker Compose instalados.
+
+### Passo a passo
+1. Clone o repositório:
+   ```bash
+   git clone [https://github.com/seu-usuario/cashflow.git](https://github.com/seu-usuario/cashflow.git)
+
+2. Acesse a pasta do projeto e suba os containers:
+   ```
+   cd cashflow
+   docker-compose up --build
+3. Acesse a aplicação em http://localhost:5173 (frontend) e a API em http://localhost:8000 (backend).
+
+
+ #### 3. Prints das Telas
+Substitua ou complemente o link do Figma por imagens reais se o sistema já estiver implementado. Exemplo:
+
+
+## 📱 Telas do Sistema
+
+### Tela de Login
+
+*Permite o acesso seguro de administradores e funcionários.*
+
+### Dashboard Financeiro
+
+*Visão geral das entradas, saídas e gráficos de desempenho.*
+
 
 <h2>Requisitos:</h2>
 <p> 
@@ -99,4 +143,7 @@ https://www.figma.com/design/umXg3TnLY68jhM8TYxUi49/CashFlow?node-id=0-1&t=z7z0Z
 
 <h2>Relatório do Projeto de Aprendizagem Extensionista</h2>
 https://drive.google.com/drive/folders/1k6xyRpnSoZNVyZwLWzC67o5SZ4gpAPa5?usp=sharing
+
+<h2>Vídeo de Apresentação</h2>
+https://youtu.be/P68ZQoKhxk8
 
