@@ -52,14 +52,44 @@ Substitua ou complemente o link do Figma por imagens reais se o sistema já esti
 
 ## 📱 Telas do Sistema
 
-### Tela de Login
+### 1. Tela de Login
+![Tela de Login](https://github.com/BrunoFranzosi230/cashflow/blob/main/Images/Tela%20de%20Login.png)
+*Tela inicial de autenticação, projetada para garantir o acesso seguro ao sistema. Os usuários devem informar suas credenciais (e-mail e senha) para entrar na plataforma.*
 
-*Permite o acesso seguro de administradores e funcionários.*
+### 2. Dashboard (Tela Inicial)
+![Dashboard Financeiro](https://github.com/BrunoFranzosi230/cashflow/blob/main/Images/Dashboard.png)
+*Painel de controle principal que oferece uma visão panorâmica da saúde financeira da empresa. Apresenta cartões com resumo de saldos (entradas, saídas, saldo atual e contas vencendo hoje), gráficos comparativos de receitas versus despesas, e uma listagem rápida das últimas transações realizadas.*
 
-### Dashboard Financeiro
+### 3. Cadastro de Clientes
+![Cadastro de Clientes](https://github.com/BrunoFranzosi230/cashflow/blob/main/Images/clientes.png)
+*Formulário estruturado para o registro de novos clientes na base de dados. Coleta informações essenciais como dados de identificação (Nome, CPF/CNPJ), contatos (E-mail, Telefone) e endereço completo.*
 
-*Visão geral das entradas, saídas e gráficos de desempenho.*
+### 4. Cadastros Padronizados
+*As telas de cadastro de fornecedores e produtos seguem o mesmo padrão visual e funcional apresentado no cadastro de clientes acima.*
 
+* **Cadastro de Fornecedores:** Permite registrar os dados dos parceiros comerciais e prestadores de serviço para vínculo futuro com lançamentos de despesas.
+* **Cadastro de Produtos:** Formulário padronizado para registrar os itens ou serviços comercializados pela madeireira, facilitando a padronização nos lançamentos de receita.
+
+### 5. Novo Lançamento
+![Novo Lançamento](https://github.com/BrunoFranzosi230/cashflow/blob/main/Images/Contas%20a%20Pagar%20Alterar.png)
+*Tela central para a gestão do fluxo de caixa, exibindo um histórico detalhado de todas as receitas e despesas. Possui ferramentas de busca e filtros (por data e status) para facilitar a localização e conferência de movimentações específicas.*
+
+
+### 6. Novo Lançamento Financeiro
+**Contas a Pagar (Despesas):**
+![Contas a Pagar](Images/Contas%20a%20Pagar.png)
+
+**Contas a Receber (Receitas):**
+![Contas a Receber](Images/Contas%20a%20Receber.png)
+Formulário completo para registrar uma nova movimentação financeira. Permite definir o tipo (Receita ou Despesa), categorizar o lançamento, informar valores, datas de vencimento e pagamento, vincular a um cliente ou fornecedor cadastrado e anexar comprovantes digitais.
+
+### 7. Configurações Gerais
+![Aba Perfil](Images/Configurações.png)
+Central de ajustes onde o usuário gerencia a segurança da conta (troca de senha) e atualiza as informações cadastrais da empresa.
+
+### 8. Gestão de Categorias
+![Aba Categorias](Images/Categorias.png)
+Ferramenta de personalização que permite cadastrar e remover as categorias financeiras usadas para classificar os lançamentos, permitindo uma organização flexível do fluxo de caixa.
 
 <h2>Requisitos:</h2>
 <p> 
